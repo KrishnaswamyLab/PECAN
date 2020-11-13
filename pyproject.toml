@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "pecan"
+version = "0.1.0"
+description = "PECAN: Persistent Condensation"
+authors = ["Bastian Rieck <bastian.rieck@bsse.ethz.ch>"]
+
+[tool.poetry.dependencies]
+python = ">=3.6"
+
+[tool.poetry.dev-dependencies]
+pytest = "^4.6"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
