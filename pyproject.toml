@@ -6,6 +6,8 @@ authors = ["Bastian Rieck <bastian.rieck@bsse.ethz.ch>"]
 
 [tool.poetry.dependencies]
 python = ">=3.6"
+numpy = "^1.19.4"
+scikit-learn = "^0.23.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^4.6"
