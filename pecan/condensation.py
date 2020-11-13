@@ -1,7 +1,10 @@
 import numpy as np
 
 from sklearn.datasets import make_moons
+from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.metrics.pairwise import rbf_kernel
+
+from utilities import UnionFind
 
 
 def make_affinity_matrix(X, epsilon):
@@ -17,6 +20,7 @@ def make_affinity_matrix(X, epsilon):
 def condensation(X, epsilon):
     """Run condensation process for a given data set."""
     n = X.shape[0]
+    uf = UnionFind(n_vertices=n)
 
     # Denotes the previous density measurement, which is initialised to
     # an identity matrix depending on the number of samples, as well as
@@ -42,6 +46,18 @@ def condensation(X, epsilon):
             # operation of diffusion here.
             i += 1
 
+            # Process new merges by checking whether their respective
+            # label assignments changed.
+            D = euclidean_distances(X)
+
+            for i1, i2 in np.transpose(np.nonzero(D < 1e-3)):
+                if i1 > i2 and uf.find(i1) != uf.find(i2):
+                    uf.merge(i1, i2)
+
+                    # TODO: assign a proper persistence for the points
+                    # here. It's not clear whether we should use time,
+                    # epsilon, or something else.
+
             A = make_affinity_matrix(X, epsilon)
             Q = np.sum(A, axis=1)
             K = np.diag(1.0 / Q) @ A @ np.diag(1.0 / Q)
@@ -59,3 +75,4 @@ if __name__ == '__main__':
     X = make_moons(100, random_state=42)[0]
 
     condensation(X, epsilon=1.0)
+
