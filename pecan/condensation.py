@@ -46,9 +46,14 @@ def condensation(X, epsilon):
 
     # Will store the data set per iteration to check whether the
     # implementation works as expected.
-    X_per_iteration = {
+    data = {
         't0': X.copy(),
     }
+
+    # Will contain the persistence pairs generated during the algorithm.
+    # For dimension 0, they will contain only the destruction times, but
+    # I will store them as 2-tuples to ensure consistency.
+    persistence_pairs = []
 
     while i - j > 1:
 
@@ -68,9 +73,10 @@ def condensation(X, epsilon):
                 if i1 > i2 and uf.find(i1) != uf.find(i2):
                     uf.merge(i1, i2)
 
-                    # TODO: assign a proper persistence for the points
-                    # here. It's not clear whether we should use time,
-                    # epsilon, or something else.
+                    # On the connected component level, the addition of
+                    # this pair is easy because *everything* is created
+                    # at t = 0.
+                    persistence_pairs.append((0, i))
 
             A = make_affinity_matrix(X, epsilon)
             Q = np.sum(A, axis=1)
@@ -80,7 +86,7 @@ def condensation(X, epsilon):
 
             # Store new variant of the data set for the current
             # iteration at time $i$.
-            X_per_iteration[f't{i}'] = X.copy()
+            data[f't{i}'] = X.copy()
 
             Q_diff = np.max(Q - Q_prev)
             Q_prev = Q
@@ -88,7 +94,8 @@ def condensation(X, epsilon):
         epsilon *= 2
         Q_diff = np.inf
 
-    return X_per_iteration
+    data['D'] = np.asarray(persistence_pairs)
+    return data
 
 
 if __name__ == '__main__':
