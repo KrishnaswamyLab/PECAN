@@ -24,6 +24,12 @@ def get_limits(data):
 def update(i):
     scatter.set_offsets(X[i])
 
+    _, destruction = pd[i]
+
+    ax[1].add_line(
+            matplotlib.lines.Line2D((0, destruction), (i, i))
+    )
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -43,12 +49,7 @@ if __name__ == '__main__':
     x_min, x_max, y_min, y_max = get_limits(X)
 
     scatter = ax[0].scatter(X[0][:, 0], X[1][:, 1])
-    ani = animation.FuncAnimation(
-        fig,
-        update,
-        frames=len(X),
-    )
-
+   
     ax[0].set_xlim((x_min, x_max))
     ax[0].set_ylim((y_min, y_max))
 
@@ -57,9 +58,15 @@ if __name__ == '__main__':
     ax[1].set_xlim(0, np.max(pd[:, 1]))
     ax[1].set_ylim(0, len(pd[:, 1]))
 
-    for index, destruction in enumerate(sorted(pd[:, 1])):
-        ax[1].add_line(
-            matplotlib.lines.Line2D((0, destruction), (index, index))
-        )
+    ani = animation.FuncAnimation(
+        fig,
+        update,
+        frames=len(X),
+    )
+
+    #for index, destruction in enumerate(sorted(pd[:, 1])):
+    #    ax[1].add_line(
+    #        matplotlib.lines.Line2D((0, destruction), (index, index))
+    #    )
 
     plt.show()
