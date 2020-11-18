@@ -1,10 +1,18 @@
+"""Topology-based diffusion condensation scheme."""
+
+import argparse
+import sys
+
 import numpy as np
 
-from sklearn.datasets import make_moons
 from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.metrics.pairwise import rbf_kernel
 
 from utilities import UnionFind
+
+from data import moons
+from data import hyperuniform_circle
+from data import hyperuniform_ellipse
 
 
 def make_affinity_matrix(X, epsilon):
@@ -36,6 +44,12 @@ def condensation(X, epsilon):
     i = 0
     j = -2
 
+    # Will store the data set per iteration to check whether the
+    # implementation works as expected.
+    X_per_iteration = {
+        0: X.copy(),
+    }
+
     while i - j > 1:
 
         j = i
@@ -64,15 +78,36 @@ def condensation(X, epsilon):
             P = np.diag(1.0 / np.sum(K, axis=1)) @ K
             X = P @ X
 
+            # Store new variant of the data set for the current
+            # iteration at time $i$.
+            X_per_iteration[i] = X.copy()
+
             Q_diff = np.max(Q - Q_prev)
             Q_prev = Q
 
         epsilon *= 2
         Q_diff = np.inf
 
+    return X_per_iteration
+
 
 if __name__ == '__main__':
-    X = make_moons(100, random_state=42)[0]
 
-    condensation(X, epsilon=1.0)
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '-d', '--data',
+        default='hyperuniform_ellipse',
+        type=str,
+    )
 
+    parser.add_argument(
+        '-n', '--num-samples',
+        default=128,
+        type=int
+    )
+
+    args = parser.parse_args()
+    this = sys.modules[__name__]
+
+    generator = getattr(this, args.data)
+    X, C = generator(args.num_samples, random_state=42)
