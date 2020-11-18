@@ -106,8 +106,20 @@ if __name__ == '__main__':
         type=int
     )
 
+    parser.add_argument(
+        '-e', '--epsilon',
+        # TODO: ensure that this makes sense and be adjusted more
+        # easily, depending on the number of points etc.
+        default=np.pi / 128,
+        type=float,
+    )
+
     args = parser.parse_args()
     this = sys.modules[__name__]
 
+    # Search for a generator routine, as requested by the client. This
+    # does not fail gracefully.
     generator = getattr(this, args.data)
+
     X, C = generator(args.num_samples, random_state=42)
+    X_per_iteration = condensation(X, args.epsilon)
