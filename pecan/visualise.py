@@ -2,6 +2,7 @@
 
 import argparse
 
+import matplotlib.lines
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 
@@ -53,6 +54,12 @@ if __name__ == '__main__':
 
     pd = data['D']
 
-    ax[1].scatter(pd[:, 0], pd[:, 1])
+    ax[1].set_xlim(0, np.max(pd[:, 1]))
+    ax[1].set_ylim(0, len(pd[:, 1]))
+
+    for index, destruction in enumerate(sorted(pd[:, 1])):
+        ax[1].add_line(
+            matplotlib.lines.Line2D((0, destruction), (index, index))
+        )
 
     plt.show()
