@@ -3,7 +3,13 @@
 import numpy as np
 
 
-def make_barbell(N, beta=1):
+def moons(N, random_state=None, **kwargs):
+    """Generate moons data set with labels."""
+    from sklearn.datasets import make_moons
+    return make_moons(N, random_state=42)
+
+
+def make_barbell(N, beta=1, **kwargs):
     """Generate uniformly-sampled 2-D barbelll with colours."""
     X = []
     C = []
@@ -41,7 +47,7 @@ def hyperuniform_circle(N):
     return np.asarray(X), np.asarray(C)
 
 
-def hyperuniform_ellipse(N, a=0.5, b=1):
+def hyperuniform_ellipse(N, a=0.5, b=1, **kwargs):
     """Generate hyperuniformly-sampled 2-D ellipse with colours."""
     # a must be the length of minor semi-axis; b major semi-axis
     assert a < b
