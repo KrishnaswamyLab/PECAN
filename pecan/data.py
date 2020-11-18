@@ -41,9 +41,10 @@ def hyperuniform_circle(N):
     return np.asarray(X), np.asarray(C)
 
 
-def hyperuniform_ellipse(N, a=1, b=2):
+def hyperuniform_ellipse(N, a=0.5, b=1):
     """Generate hyperuniformly-sampled 2-D ellipse with colours."""
-    assert(a < b) # a must be length of minor semi-axis; b major semi-axis
+    # a must be the length of minor semi-axis; b major semi-axis
+    assert a < b
 
     X = []
     C = np.linspace(0, 1, N)
