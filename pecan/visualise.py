@@ -8,6 +8,18 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
+def get_limits(data):
+    x = np.asarray([X[:, 0] for X in data]).flatten()
+    y = np.asarray([X[:, 1] for X in data]).flatten()
+
+    x_min = np.min(x)
+    x_max = np.max(x)
+    y_min = np.min(y)
+    y_max = np.max(y)
+
+    return x_min, x_max, y_min, y_max
+
+
 def update(i):
     scatter.set_offsets(X[i])
 
@@ -27,6 +39,8 @@ if __name__ == '__main__':
         if key.startswith('t'):
             X.append(data[key])
 
+    x_min, x_max, y_min, y_max = get_limits(X)
+
     scatter = ax[0].scatter(X[0][:, 0], X[1][:, 1])
     ani = animation.FuncAnimation(
         fig,
@@ -34,8 +48,8 @@ if __name__ == '__main__':
         frames=len(X),
     )
 
-    ax[0].set_xlim((-1.5, 1.5))
-    ax[0].set_ylim((-1.5, 1.5))
+    ax[0].set_xlim((x_min, x_max))
+    ax[0].set_ylim((y_min, y_max))
 
     pd = data['D']
 
