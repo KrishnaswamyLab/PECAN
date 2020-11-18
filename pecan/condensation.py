@@ -47,7 +47,7 @@ def condensation(X, epsilon):
     # Will store the data set per iteration to check whether the
     # implementation works as expected.
     X_per_iteration = {
-        0: X.copy(),
+        't0': X.copy(),
     }
 
     while i - j > 1:
@@ -80,7 +80,7 @@ def condensation(X, epsilon):
 
             # Store new variant of the data set for the current
             # iteration at time $i$.
-            X_per_iteration[i] = X.copy()
+            X_per_iteration[f't{i}'] = X.copy()
 
             Q_diff = np.max(Q - Q_prev)
             Q_prev = Q
@@ -114,6 +114,12 @@ if __name__ == '__main__':
         type=float,
     )
 
+    parser.add_argument(
+        '-o', '--output',
+        default=None,
+        type=str,
+    )
+
     args = parser.parse_args()
     this = sys.modules[__name__]
 
@@ -122,4 +128,11 @@ if __name__ == '__main__':
     generator = getattr(this, args.data)
 
     X, C = generator(args.num_samples, random_state=42)
-    X_per_iteration = condensation(X, args.epsilon)
+    data = condensation(X, args.epsilon)
+
+    data['C'] = C
+
+    if args.output is None:
+        args.output = args.data + '.npz'
+
+    np.savez(args.output, **data)
