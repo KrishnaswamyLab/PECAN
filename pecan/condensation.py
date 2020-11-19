@@ -84,6 +84,18 @@ def condensation(X, epsilon):
             P = np.diag(1.0 / np.sum(K, axis=1)) @ K
             X = P @ X
 
+            # Calculate some information about return probabilities.
+            # This is *not* the most efficient way, but since P does
+            # vary over time, I currently see no other way here.
+            eigenvalues, eigenvectors = np.linalg.eigh(P)
+
+            return_probabilities = np.multiply(eigenvectors, eigenvectors)
+            return_probabilities = np.multiply(
+                return_probabilities,
+                eigenvalues
+            )
+            return_probabilities = np.sum(return_probabilities, axis=0)
+
             # Store new variant of the data set for the current
             # iteration at time $i$.
             data[f't{i}'] = X.copy()
