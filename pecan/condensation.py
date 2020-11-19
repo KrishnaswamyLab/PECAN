@@ -5,6 +5,8 @@ import sys
 
 import numpy as np
 
+import matplotlib.pyplot as plt
+
 from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.metrics.pairwise import rbf_kernel
 
@@ -55,6 +57,11 @@ def condensation(X, epsilon):
     # I will store them as 2-tuples to ensure consistency.
     persistence_pairs = []
 
+    # FIXME: will contain all return probabilities observed as the
+    # algorithm runs. This is a way to detect general loops in the
+    # data; not sure how to link that to TDA.
+    R = []
+
     while i - j > 1:
 
         j = i
@@ -96,6 +103,8 @@ def condensation(X, epsilon):
             )
             return_probabilities = np.sum(return_probabilities, axis=0)
 
+            R.append(return_probabilities)
+
             # Store new variant of the data set for the current
             # iteration at time $i$.
             data[f't{i}'] = X.copy()
@@ -105,6 +114,12 @@ def condensation(X, epsilon):
 
         epsilon *= 2
         Q_diff = np.inf
+
+    # FIXME: this can be made smarter; just visualises the return
+    # probabilities over the diffusion process.
+    R = np.asarray(R)
+    plt.matshow(R)
+    plt.show()
 
     data['D'] = np.asarray(persistence_pairs)
     return data
