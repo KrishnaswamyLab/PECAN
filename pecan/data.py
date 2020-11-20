@@ -9,7 +9,7 @@ def moons(N, random_state=None, **kwargs):
     return make_moons(N, random_state=42)
 
 
-def make_barbell(N, beta=1, **kwargs):
+def barbell(N, beta=1, **kwargs):
     """Generate uniformly-sampled 2-D barbelll with colours."""
     X = []
     C = []
@@ -32,6 +32,29 @@ def make_barbell(N, beta=1, **kwargs):
             C.append(2)
 
     return np.asarray(X), np.asarray(C)
+
+
+def double_annulus(N):
+    """Sample N points from a double annulus."""
+    X = []
+    for i in range(N):
+        while True:
+            t = [
+                np.random.uniform(-50, 50, 1),
+                np.randon.uniform(-50, 140, 1)
+            ]
+
+            d = np.sqrt(np.dot(t, t))
+            if d <= 50 and d >= 20:
+                X.append(t)
+                break
+
+            d = np.sqrt(t[0]**2 + (t[1] - 90)**2)
+            if d <= 50 and d >= 40:
+                X.append(t)
+                break
+
+    return np.asarray(X)
 
 
 def hyperuniform_circle(N):
