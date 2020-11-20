@@ -71,6 +71,7 @@ if __name__ == '__main__':
     # The persistence diagram is always scaled to [0,1] x [0,1].
     ax[1].set_xlim(-0.1, 1.1)
     ax[1].set_ylim(-0.1, 1.1)
+    ax[1].axline((-0.1, -0.1), slope=1.0, c='k')
     persistence_diagram = ax[1].scatter(x=[], y=[])
 
     ani = animation.FuncAnimation(
