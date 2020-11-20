@@ -25,9 +25,7 @@ def get_limits(data):
 def update(i):
     scatter.set_offsets(X[i])
 
-
     # Figure out all intervals to draw here
-    
     values = [destruction for _, destruction in pd if destruction <= T[i]]
 
     segments = [
@@ -40,6 +38,7 @@ def update(i):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('INPUT')
+    parser.add_argument('-r', '--repeat', action='store_true')
 
     args = parser.parse_args()
 
@@ -76,6 +75,7 @@ if __name__ == '__main__':
         fig,
         update,
         frames=len(X),
+        repeat=args.repeat,
     )
 
     plt.show()
