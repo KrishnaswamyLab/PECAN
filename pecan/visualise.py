@@ -65,6 +65,10 @@ if __name__ == '__main__':
 
     pd = data['D']
 
+    # Ensures that there is always a persistence diagram available.
+    if len(pd) == 0:
+        pd = np.asarray([(0, 1)])
+
     ax[1].set_xlim(0, np.max(pd[:, 1]))
     ax[1].set_ylim(0, len(pd[:, 1]))
 

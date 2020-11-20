@@ -18,6 +18,20 @@ from data import hyperuniform_circle
 from data import hyperuniform_ellipse
 
 
+def analyse_persistence_diagram(data):
+    """Analyse persistence diagram statistics."""
+    pd = np.asarray(data['D'])
+    if len(pd) == 0:
+        return
+
+    pd = pd / np.max(pd)
+
+    persistence_values = np.sum(pd, axis=1)
+    total_persistence = np.sum(persistence_values) / len(persistence_values)
+
+    print(f'Total persistence: {total_persistence:.2f}')
+
+
 def make_affinity_matrix(X, epsilon):
     """Calculate affinity matrix.
 
@@ -125,11 +139,12 @@ def condensation(X, epsilon):
         epsilon *= 2
         Q_diff = np.inf
 
-    # FIXME: this can be made smarter; just visualises the return
-    # probabilities over the diffusion process.
-    R = np.asarray(R)
-    plt.matshow(R)
-    plt.show()
+    if False:
+        # FIXME: this can be made smarter; just visualises the return
+        # probabilities over the diffusion process.
+        R = np.asarray(R)
+        plt.matshow(R)
+        plt.show()
 
     data['D'] = np.asarray(persistence_pairs)
     return data
@@ -173,6 +188,8 @@ if __name__ == '__main__':
 
     X, C = generator(args.num_samples, random_state=42)
     data = condensation(X, args.epsilon)
+
+    analyse_persistence_diagram(data)
 
     data['C'] = C
 
