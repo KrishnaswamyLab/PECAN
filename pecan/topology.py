@@ -45,6 +45,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('INPUT')
     parser.add_argument('-r', '--repeat', action='store_true')
+    parser.add_argument('-i', '--interval', type=int, default=200)
 
     args = parser.parse_args()
 
@@ -77,6 +78,7 @@ if __name__ == '__main__':
         update,
         frames=len(X),
         repeat=args.repeat,
+        interval=args.interval,
     )
 
     plt.show()
