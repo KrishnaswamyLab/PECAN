@@ -12,6 +12,7 @@ from sklearn.metrics.pairwise import rbf_kernel
 
 from utilities import UnionFind
 
+from data import double_annulus
 from data import moons
 from data import hyperuniform_circle
 from data import hyperuniform_ellipse
@@ -62,6 +63,10 @@ def condensation(X, epsilon):
     # data; not sure how to link that to TDA.
     R = []
 
+    # Current time-inhomogeneous diffusion operator. Will be updated in
+    # each step. This is used to keep track of return probabilities.
+    P_t = np.identity(n)
+
     while i - j > 1:
 
         j = i
@@ -91,10 +96,15 @@ def condensation(X, epsilon):
             P = np.diag(1.0 / np.sum(K, axis=1)) @ K
             X = P @ X
 
-            # Calculate some information about return probabilities.
-            # This is *not* the most efficient way, but since P does
-            # vary over time, I currently see no other way here.
-            eigenvalues, eigenvectors = np.linalg.eigh(P)
+            # Store new version of the operator. Its SVD will be used to
+            # estimate return probabilities.
+            #
+            # FIXME: this is not super efficient!
+            P_t = P @ P_t
+            U, S, V = np.linalg.svd(P_t)
+
+            eigenvalues = S
+            eigenvectors = U @ V
 
             return_probabilities = np.multiply(eigenvectors, eigenvectors)
             return_probabilities = np.multiply(
