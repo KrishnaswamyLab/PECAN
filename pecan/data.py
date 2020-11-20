@@ -57,6 +57,7 @@ def double_annulus(N, **kwargs):
                 C.append(1)
                 break
 
+    X = (X - np.min(X)) / (np.max(X) - np.min(X))
     return np.asarray(X), np.asarray(C)
 
 
