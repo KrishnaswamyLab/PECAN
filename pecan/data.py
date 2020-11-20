@@ -34,30 +34,33 @@ def barbell(N, beta=1, **kwargs):
     return np.asarray(X), np.asarray(C)
 
 
-def double_annulus(N):
+def double_annulus(N, **kwargs):
     """Sample N points from a double annulus."""
     X = []
+    C = []
     for i in range(N):
         while True:
             t = [
-                np.random.uniform(-50, 50, 1),
-                np.randon.uniform(-50, 140, 1)
+                np.random.uniform(-50, 50, 1)[0],
+                np.random.uniform(-50, 140, 1)[0]
             ]
 
             d = np.sqrt(np.dot(t, t))
             if d <= 50 and d >= 20:
                 X.append(t)
+                C.append(0)
                 break
 
             d = np.sqrt(t[0]**2 + (t[1] - 90)**2)
             if d <= 50 and d >= 40:
                 X.append(t)
+                C.append(1)
                 break
 
-    return np.asarray(X)
+    return np.asarray(X), np.asarray(C)
 
 
-def hyperuniform_circle(N):
+def hyperuniform_circle(N, **kwargs):
     """Generate hyperuniformly-Sampled 2-D circle and colours."""
     X = []
     C = np.linspace(0, 1, N)
