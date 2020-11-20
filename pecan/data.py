@@ -36,6 +36,9 @@ def barbell(N, beta=1, **kwargs):
 
 def double_annulus(N, **kwargs):
     """Sample N points from a double annulus."""
+    if kwargs.get('random_state'):
+        np.random.seed(kwargs['random_state'])
+
     X = []
     C = []
     for i in range(N):
