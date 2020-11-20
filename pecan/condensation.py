@@ -50,7 +50,7 @@ def condensation(X, epsilon):
     # Will store the data set per iteration to check whether the
     # implementation works as expected.
     data = {
-        't0': X.copy(),
+        't_0': X.copy(),
     }
 
     # Will contain the persistence pairs generated during the algorithm.
@@ -117,7 +117,7 @@ def condensation(X, epsilon):
 
             # Store new variant of the data set for the current
             # iteration at time $i$.
-            data[f't{i}'] = X.copy()
+            data[f't_{i}'] = X.copy()
 
             Q_diff = np.max(Q - Q_prev)
             Q_prev = Q
