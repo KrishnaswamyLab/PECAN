@@ -90,13 +90,14 @@ def condensation(X, epsilon):
     spinner = yaspin(spinner=Spinners.dots)
 
     while i - j > 1:
-    
+
         spinner.start()
-        spinner.text = f'Iteration {i}'
 
         j = i
 
         while Q_diff >= 1e-4:
+
+            spinner.text = f'Iteration {i}'
 
             # This signals that we want to perform an additional
             # operation of diffusion here.
