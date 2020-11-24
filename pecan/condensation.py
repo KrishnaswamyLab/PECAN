@@ -13,13 +13,15 @@ from sklearn.metrics.pairwise import rbf_kernel
 from yaspin import yaspin
 from yaspin.spinners import Spinners
 
-from utilities import UnionFind
-
 from data import barbell
 from data import double_annulus
 from data import moons
 from data import hyperuniform_circle
 from data import hyperuniform_ellipse
+
+from ripser import Ripser
+
+from utilities import UnionFind
 
 
 def analyse_persistence_diagram(data):
@@ -118,6 +120,12 @@ def condensation(X, epsilon):
             K = np.diag(1.0 / Q) @ A @ np.diag(1.0 / Q)
             P = np.diag(1.0 / np.sum(K, axis=1)) @ K
             X = P @ X
+
+            D = euclidean_distances(X)
+            tuples, points = Ripser(dimension=1)(D)
+
+            cycles = [c for c, d in tuples if len(c) == 2] 
+            print(cycles)
 
             # Store new version of the operator. Its SVD will be used to
             # estimate return probabilities.
