@@ -1,5 +1,6 @@
 """Handle communication with Ripser."""
 
+import itertools
 import os
 import tempfile
 import subprocess
@@ -30,7 +31,9 @@ class Ripser:
             os.remove(path)
 
         tuples = self._parse(result.stdout.decode('utf-8'))
-        return tuples
+        points = self._make_points(tuples, D)
+
+        return tuples, points
 
     def _parse(self, output):
         """Perform output parsing and return persistence pairs."""
@@ -56,3 +59,19 @@ class Ripser:
         simplex = map(int, simplex)
 
         return list(simplex)
+
+    def _make_points(self, tuples, D):
+        """Create persistence points from tuples and distances."""
+        return [
+            (self._get_weight(creator, D), self._get_weight(destroyer, D))
+            for creator, destroyer in tuples
+        ]
+
+    def _get_weight(self, simplex, D):
+        """Get weight of simplex based on distance matrix."""
+        max_weight = 0.0
+        for subset in itertools.combinations(simplex, 2):
+            max_weight = max(max_weight, D[subset])
+
+        return max_weight
+
