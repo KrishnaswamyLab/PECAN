@@ -8,17 +8,21 @@ import numpy as np
 
 
 class Ripser:
-    """Interface with the `ripser` command-line tool."""
+    """Interface class for the `ripser` command-line tool."""
+
+    def __init__(self, dimension):
+        """Create interface class."""
+        self.dimension = dimension
 
     def __call__(self, D):
-
+        """Call `ripser` on a provided distance matrix."""
         fd, path = tempfile.mkstemp()
         try:
             with os.fdopen(fd, 'w') as tmp:
                 np.savetxt(tmp, D)
 
             result = subprocess.run(
-                ['ripser', path],
+                ['ripser', '--dim', str(self.dimension), path],
                 stdout=subprocess.PIPE
             )
 
