@@ -10,8 +10,12 @@ import matplotlib.pyplot as plt
 from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.metrics.pairwise import rbf_kernel
 
+from yaspin import yaspin
+from yaspin.spinners import Spinners
+
 from utilities import UnionFind
 
+from data import barbell
 from data import double_annulus
 from data import moons
 from data import hyperuniform_circle
@@ -81,7 +85,12 @@ def condensation(X, epsilon):
     # each step. This is used to keep track of return probabilities.
     P_t = np.identity(n)
 
+    spinner = yaspin(spinner=Spinners.dots)
+
     while i - j > 1:
+    
+        spinner.start()
+        spinner.text = f'Iteration {i}'
 
         j = i
 
@@ -138,6 +147,8 @@ def condensation(X, epsilon):
 
         epsilon *= 2
         Q_diff = np.inf
+
+    spinner.stop()
 
     if False:
         # FIXME: this can be made smarter; just visualises the return
