@@ -10,6 +10,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
+# Will be updated later on by the animation. I know that this is
+# horrible, but it's the easiest way :)
+scatter = None
+
+
 def get_limits(data):
     x = np.asarray([X[:, 0] for X in data]).flatten()
     y = np.asarray([X[:, 1] for X in data]).flatten()
@@ -23,7 +28,12 @@ def get_limits(data):
 
 
 def update(i):
-    scatter.set_offsets(X[i])
+    global scatter
+    if scatter is None:
+        scatter = ax[0].scatter(X[0][:, 0], X[0][:, 1])
+    else:
+        scatter.set_offsets(X[i])
+
     ax[0].set_title(f'$t={T[i]}$')
 
     from gtda.homology import VietorisRipsPersistence
@@ -40,7 +50,7 @@ def update(i):
     diagram = diagrams[0][:, 0:2]
     persistence_diagram.set_offsets(diagram)
 
-    
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('INPUT')
@@ -51,7 +61,7 @@ if __name__ == '__main__':
 
     data = np.load(args.INPUT)
 
-    fig, ax = plt.subplots(ncols=2)
+    fig, ax = plt.subplots(ncols=2, figsize=(6,3))
 
     X = []
     T = []
@@ -62,8 +72,6 @@ if __name__ == '__main__':
             T.append(int(key.split('_')[1]))
 
     x_min, x_max, y_min, y_max = get_limits(X)
-
-    scatter = ax[0].scatter(X[0][:, 0], X[1][:, 1])
 
     ax[0].set_xlim((x_min, x_max))
     ax[0].set_ylim((y_min, y_max))
