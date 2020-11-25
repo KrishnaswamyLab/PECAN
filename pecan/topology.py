@@ -7,6 +7,8 @@ import matplotlib.lines
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 
+from mpl_toolkits.mplot3d import Axes3D
+
 import numpy as np
 
 
@@ -59,7 +61,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    data = np.load(args.INPUT)
+    data = np.load(args.INPUT, allow_pickle=True)
 
     fig, ax = plt.subplots(ncols=2, figsize=(6,3))
 
@@ -89,5 +91,26 @@ if __name__ == '__main__':
         repeat=args.repeat,
         interval=args.interval,
     )
+
+    fig = plt.figure()
+    ax3 = fig.add_subplot(111, projection='3d')
+
+    pairs = []
+    points = []
+
+    for key in data.keys():
+        if key.startswith('pairs'):
+            pairs.append(data[key])
+        elif key.startswith('points'):
+            points.append(data[key])
+
+            #T.append(int(key.split('_')[1]))
+
+    for index, values in enumerate(points):
+        x = values[:, 0]
+        y = values[:, 1]
+        z = [index] * len(x)
+
+        ax3.scatter(x, z, y)
 
     plt.show()
