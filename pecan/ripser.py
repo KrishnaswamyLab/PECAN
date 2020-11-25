@@ -33,7 +33,8 @@ class Ripser:
         tuples = self._parse(result.stdout.decode('utf-8'))
         points = self._make_points(tuples, D)
 
-        return tuples, points
+        return np.asarray(tuples, dtype=object), \
+            np.asarray(points, dtype=object)
 
     def _parse(self, output):
         """Perform output parsing and return persistence pairs."""
