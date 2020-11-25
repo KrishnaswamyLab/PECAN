@@ -104,6 +104,9 @@ if __name__ == '__main__':
         elif key.startswith('points'):
             points.append(data[key])
 
+    # 3D persistence diagram
+    D3 = []
+
     for index, values in enumerate(points):
         x = values[:, 0]
         y = values[:, 1]
@@ -111,12 +114,31 @@ if __name__ == '__main__':
 
         ax3.scatter(x, z, y)
 
+        D3.append(np.asarray([x, y, z]).T)
+
+    # This is now an (n x 3) matrix, where n is the number of
+    # topological features. Columns 1 and 2 correspond to the
+    # spatial positions of data, whereas column 3 indicates a
+    # time step for a feature.
+    D3 = np.concatenate(D3)
+
+    global_index = 0
     for index, (first, second) in enumerate(zip(pairs, pairs[1:])):
-        for c1, d1 in first:
-            for c2, d2 in second:
-                if c1 == c2:
-                    print(index, '--', index + 1, 'C', c1, d1, c2, d2)
-                elif d1 == d2:
-                    print(index, '--', index + 1, 'D', c1, d1, c2, d2)
+        for i1, (c1, d1) in enumerate(first):
+            for i2, (c2, d2) in enumerate(second):
+                if c1 == c2 or  d1 == d2:
+                    print(index, '--', index + 1, c1, d1, c2, d2)
+
+                    x1, y1, z1 = D3[global_index + i1]
+                    x2, y2, z2 = D3[global_index + len(first) + i2]
+
+                    ax3.plot(
+                        [x1, x2],
+                        [z1, z2],
+                        [y1, y2],
+                        c='k'
+                    )
+
+        global_index += len(first)
 
     plt.show()
