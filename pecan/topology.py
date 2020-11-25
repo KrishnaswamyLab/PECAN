@@ -104,13 +104,19 @@ if __name__ == '__main__':
         elif key.startswith('points'):
             points.append(data[key])
 
-            #T.append(int(key.split('_')[1]))
-
     for index, values in enumerate(points):
         x = values[:, 0]
         y = values[:, 1]
         z = [index] * len(x)
 
         ax3.scatter(x, z, y)
+
+    for index, (first, second) in enumerate(zip(pairs, pairs[1:])):
+        for c1, d1 in first:
+            for c2, d2 in second:
+                if c1 == c2:
+                    print(index, '--', index + 1, 'C', c1, d1, c2, d2)
+                elif d1 == d2:
+                    print(index, '--', index + 1, 'D', c1, d1, c2, d2)
 
     plt.show()
