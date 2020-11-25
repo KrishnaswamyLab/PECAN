@@ -107,12 +107,23 @@ if __name__ == '__main__':
     # 3D persistence diagram
     D3 = []
 
+    cm = matplotlib.cm.get_cmap('Spectral')
+    max_t = 0
+
+    for index, values in enumerate(points):
+        if len(values[:, 0]) > 0:
+            max_t += 1
+
     for index, values in enumerate(points):
         x = values[:, 0]
         y = values[:, 1]
         z = [index] * len(x)
 
-        ax3.scatter(x, z, y)
+        ax3.scatter(
+            x, z, y,
+            color=cm(index / (max_t - 1)),
+            edgecolors='black'
+        )
 
         D3.append(np.asarray([x, y, z]).T)
 
