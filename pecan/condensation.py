@@ -140,6 +140,19 @@ def condensation(X, epsilon):
                 cycle_pairs = tuples[mask]
                 cycle_points = points[mask]
 
+                # TODO: make this configurable; I am not sure whether it
+                # is the smartest choice to change the lookup of
+                # topological features here.
+                if False:
+                    cycle_pairs_ = []
+
+                    for sigma, tau in cycle_pairs:
+                        sigma = [uf.find(v) for v in sigma]
+                        tau = [uf.find(v) for v in tau]
+                        cycle_pairs_.append((sigma, tau))
+
+                    cycle_pairs = np.asarray(cycle_pairs_, dtype=object)
+
                 data[f'pairs_{i}'] = cycle_pairs
                 data[f'points_{i}'] = cycle_points
 
