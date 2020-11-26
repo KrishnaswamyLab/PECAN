@@ -156,22 +156,18 @@ def condensation(X, epsilon):
                 data[f'pairs_{i}'] = cycle_pairs
                 data[f'points_{i}'] = cycle_points
 
-                # Store new version of the operator. Its SVD will be used to
-                # estimate return probabilities.
-                #
-                # FIXME: this is not super efficient!
-                P_t = P @ P_t
-                U, S, V = np.linalg.svd(P_t)
+                eigenvalues, eigenvectors = np.linalg.eigh(P)
 
-                eigenvalues = S
-                eigenvectors = U @ V
+                eigenvalues = eigenvalues**16
 
                 return_probabilities = np.multiply(eigenvectors, eigenvectors)
                 return_probabilities = np.multiply(
                     return_probabilities,
                     eigenvalues
                 )
-                return_probabilities = np.sum(return_probabilities, axis=0)
+                return_probabilities = np.sum(return_probabilities, axis=1)
+
+                print(return_probabilities)
 
                 R.append(return_probabilities)
 
@@ -185,7 +181,7 @@ def condensation(X, epsilon):
             epsilon *= 2
             Q_diff = np.inf
 
-    if False:
+    if True:
         # FIXME: this can be made smarter; just visualises the return
         # probabilities over the diffusion process.
         R = np.asarray(R)
