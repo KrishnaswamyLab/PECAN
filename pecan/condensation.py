@@ -385,7 +385,7 @@ if __name__ == '__main__':
     data = condensation(X, args.epsilon)
 
     diffusion_homology = CalculateDiffusionHomology()
-    return_probabilities = CalculateReturnProbabilities(k=8)
+    return_probabilities = CalculateReturnProbabilities(K=8)
 
     diffusion_condensation = DiffusionCondensation(
         [diffusion_homology, return_probabilities]
@@ -393,6 +393,7 @@ if __name__ == '__main__':
     diffusion_condensation(X, args.epsilon)
 
     print(diffusion_homology.persistence_pairs)
+    print(return_probabilities.return_probabilities)
 
     #analyse_persistence_diagram(data)
 
