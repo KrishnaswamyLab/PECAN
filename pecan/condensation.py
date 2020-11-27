@@ -85,18 +85,13 @@ class DiffusionCondensation:
     such as further processing operations, may be integrated.
     """
 
-    def __init__(
-        self,
-        pre_condensation_transforms=None,
-        post_condensation_transforms=None
-    ):
-        self.pre_condensation_transforms = pre_condensation_transforms
-        self.post_condensation_transforms = []
+    def __init__(self, callbacks=[]):
+        """Initialise new instance and register callbacks."""
+        self.callbacks = []
 
     def __call__(self, X, epsilon):
         """Run condensation process for a given data set."""
         n = X.shape[0]
-        uf = UnionFind(n_vertices=n)
 
         # Denotes the previous density measurement, which is initialised to
         # an identity matrix depending on the number of samples, as well as
@@ -149,8 +144,8 @@ class DiffusionCondensation:
                     K = np.diag(1.0 / Q) @ A @ np.diag(1.0 / Q)
                     P = np.diag(1.0 / np.sum(K, axis=1)) @ K
 
-                    for transform in self.pre_condensation_transforms:
-                        transform(i, X, P, D)
+                    for callback in self.callbacks:
+                        callback(i, X, P, D)
 
                     X = P @ X
 
