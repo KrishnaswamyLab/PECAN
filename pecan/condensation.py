@@ -49,7 +49,7 @@ def make_affinity_matrix(X, epsilon):
 
 
 class CalculateDiffusionHomology:
-    """Calculate diffusion homology.
+    """Diffusion homology calculation callback.
 
     This class keeps track of homology classes arising during the
     condensation process. This calculation is the natural analogy
@@ -77,6 +77,55 @@ class CalculateDiffusionHomology:
                 self.persistence_pairs.append((0, t))
 
 
+class CalculateReturnProbabilities:
+    """Return probabilities calculation callback.
+
+    This callback calculates the return probabilities for random walks
+    up to a pre-defined length.
+    """
+
+    def __init__(self, K):
+        """Create new instance of the callback.
+
+        Parameters
+        ----------
+        K : int
+            Maximum length of a random walk to use for the calculation
+            of return probabilities.
+        """
+        self.K = K
+        self.return_probabilities = dict()
+
+    def __call__(self, t, X, P, D):
+        """Update function for this functor."""
+        eigenvalues, eigenvectors = np.linalg.eigh(P)
+        eigenvalues = eigenvalues**16
+
+        U = np.multiply(eigenvectors, eigenvectors)
+
+        # Create a matrix that will store the return probabilities. The
+        # matrix will be of shape (n, K).
+        n = X.shape[0]
+        R = np.empty((n, self.K))
+
+        for k in range(self.K):
+
+            # TODO: potentially use a smarter calculation here so that
+            # we don't have to recompute them everytime?
+            V = eigenvalues**k
+
+            return_probabilities = np.multiply(
+                U,
+                V
+            )
+
+            return_probabilities = np.sum(return_probabilities, axis=1)
+            R[:, k] = return_probabilities
+
+        # Store the return probabilities for the condensation time t.
+        self.return_probabilities[t] = R
+
+
 class DiffusionCondensation:
     """Generic diffusion condensation functor.
 
@@ -87,7 +136,7 @@ class DiffusionCondensation:
 
     def __init__(self, callbacks=[]):
         """Initialise new instance and register callbacks."""
-        self.callbacks = []
+        self.callbacks = callbacks
 
     def __call__(self, X, epsilon):
         """Run condensation process for a given data set."""
@@ -336,8 +385,11 @@ if __name__ == '__main__':
     data = condensation(X, args.epsilon)
 
     diffusion_homology = CalculateDiffusionHomology()
+    return_probabilities = CalculateReturnProbabilities(k=8)
 
-    diffusion_condensation = DiffusionCondensation([diffusion_homology])
+    diffusion_condensation = DiffusionCondensation(
+        [diffusion_homology, return_probabilities]
+    )
     diffusion_condensation(X, args.epsilon)
 
     print(diffusion_homology.persistence_pairs)
