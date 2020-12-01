@@ -98,6 +98,8 @@ class CalculateReturnProbabilities:
 
     def __call__(self, t, X, P, D):
         """Update function for this functor."""
+        # TODO: use different matrix for the decomposition; need to
+        # account for diagonal terms here?
         eigenvalues, eigenvectors = np.linalg.eigh(P)
         eigenvalues = eigenvalues**16
 
@@ -134,9 +136,29 @@ class DiffusionCondensation:
     such as further processing operations, may be integrated.
     """
 
-    def __init__(self, callbacks=[]):
-        """Initialise new instance and register callbacks."""
+    def __init__(self, callbacks=[], prefix='data_'):
+        """Initialise new instance and register callbacks.
+
+        Parameters
+        ----------
+        callbacks : list of callable
+            Function objects (functors) that will be called during each
+            iteration. Every functor instance must satisfy a signature,
+            as described below::
+
+                callback(i, X, P, D)
+
+            Where `i` is the current time step, `X` is the current data,
+            `P` is the current diffusion operator, and `D` is a distance
+            matrix between data points (using the Euclidean distance).
+
+        prefix : str
+            Indicates the prefix to be used for storing individual time
+            steps. If set to `X`, the first key of the diffusion
+            condensation process will be called `X_t_0`.
+        """
         self.callbacks = callbacks
+        self.prefix = prefix
 
     def __call__(self, X, epsilon):
         """Run condensation process for a given data set."""
@@ -159,13 +181,8 @@ class DiffusionCondensation:
         # Will store the data set per iteration to check whether the
         # implementation works as expected.
         data = {
-            't_0': X.copy(),
+            self.prefix + 't_0': X.copy(),
         }
-
-        # FIXME: will contain all return probabilities observed as the
-        # algorithm runs. This is a way to detect general loops in the
-        # data; not sure how to link that to TDA.
-        R = []
 
         # Current time-inhomogeneous diffusion operator. Will be updated in
         # each step. This is used to keep track of return probabilities.
@@ -200,7 +217,7 @@ class DiffusionCondensation:
 
                     # Store new variant of the data set for the current
                     # iteration at time $i$.
-                    data[f't_{i}'] = X.copy()
+                    data[f'{self.prefix}t_{i}'] = X.copy()
 
                     Q_diff = np.max(Q - Q_prev)
                     Q_prev = Q
