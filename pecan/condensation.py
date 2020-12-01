@@ -417,8 +417,9 @@ if __name__ == '__main__':
     })
 
     data.update({
-        f'diffusion_homology_persistence_pairs{i}': pairs for i, pairs in
-        diffusion_homology.persistence_pairs
+        'diffusion_homology_persistence_pairs': np.asarray(
+            diffusion_homology.persistence_pairs
+        )
     })
 
     if args.output is None:
