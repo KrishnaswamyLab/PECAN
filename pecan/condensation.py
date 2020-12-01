@@ -421,11 +421,7 @@ if __name__ == '__main__':
         diffusion_homology.persistence_pairs
     })
 
-    #analyse_persistence_diagram(data)
+    if args.output is None:
+        args.output = args.data + '.npz'
 
-    #data['C'] = C
-
-    #if args.output is None:
-    #    args.output = args.data + '.npz'
-
-    #np.savez(args.output, **data)
+    np.savez(args.output, **data)
