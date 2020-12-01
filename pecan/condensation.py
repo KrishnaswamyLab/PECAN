@@ -184,6 +184,9 @@ class DiffusionCondensation:
             self.prefix + 't_0': X.copy(),
         }
 
+        for callback in self.callbacks:
+            callback(i, X, np.identity(n), euclidean_distances(X))
+
         # Current time-inhomogeneous diffusion operator. Will be updated in
         # each step. This is used to keep track of return probabilities.
         P_t = np.identity(n)
@@ -399,7 +402,6 @@ if __name__ == '__main__':
     generator = getattr(this, args.data)
 
     X, C = generator(args.num_samples, random_state=42)
-    data = condensation(X, args.epsilon)
 
     diffusion_homology = CalculateDiffusionHomology()
     return_probabilities = CalculateReturnProbabilities(K=8)
@@ -407,10 +409,17 @@ if __name__ == '__main__':
     diffusion_condensation = DiffusionCondensation(
         [diffusion_homology, return_probabilities]
     )
-    diffusion_condensation(X, args.epsilon)
+    data = diffusion_condensation(X, args.epsilon)
 
-    print(diffusion_homology.persistence_pairs)
-    print(return_probabilities.return_probabilities)
+    data.update({
+        f'return_probabilities_t_{i}': prob for i, prob in
+        return_probabilities.return_probabilities.items()
+    })
+
+    data.update({
+        f'diffusion_homology_persistence_pairs{i}': pairs for i, pairs in
+        diffusion_homology.persistence_pairs
+    })
 
     #analyse_persistence_diagram(data)
 
