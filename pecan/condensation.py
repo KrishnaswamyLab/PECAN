@@ -39,7 +39,7 @@ class CalculatePersistentHomology:
     """
 
     def __init__(self, dimension=1):
-        """Create new instance of callback and set parameters.
+        """Build new instance of callback and set parameters.
 
         Parameters
         ----------
@@ -50,6 +50,11 @@ class CalculatePersistentHomology:
         self.dimension = dimension
         self.persistence_pairs = dict()
         self.persistence_points = dict()
+
+        # TODO: if set, this class will require an additional
+        # Union--Find structure for rewriting generators. Not
+        # sure whether this is smart.
+        self.rewrite_generators = False
 
     def __call__(self, t, X, P, D):
         """Update function for this functor."""
@@ -73,6 +78,22 @@ class CalculatePersistentHomology:
 
         self.persistence_pairs[t] = tuples
         self.persistence_points[t] = points
+
+        # TODO: make this configurable; I am not sure whether it is
+        # the smartest choice to change the lookup of topological
+        # features here.
+        #
+        # HIC SVNT LEONES
+        if self.rewrite_generators:
+
+            tuples_ = []
+
+            for sigma, tau in tuples:
+                sigma = [uf.find(v) for v in sigma]
+                tau = [uf.find(v) for v in tau]
+                tuples_.append((sigma, tau))
+
+            tuples = np.asarray(tuples, dtype=object)
 
 
 class CalculateDiffusionHomology:
