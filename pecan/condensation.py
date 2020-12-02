@@ -237,10 +237,6 @@ class DiffusionCondensation:
         for callback in self.callbacks:
             callback(i, X, np.identity(n), euclidean_distances(X))
 
-        # Current time-inhomogeneous diffusion operator. Will be updated in
-        # each step. This is used to keep track of return probabilities.
-        P_t = np.identity(n)
-
         logging.info('Started diffusion condensation process')
 
         with yaspin(spinner=Spinners.dots) as sp:
