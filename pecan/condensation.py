@@ -25,20 +25,6 @@ from ripser import Ripser
 from utilities import UnionFind
 
 
-def analyse_persistence_diagram(data):
-    """Analyse persistence diagram statistics."""
-    pd = np.asarray(data['D'])
-    if len(pd) == 0:
-        return
-
-    pd = pd / np.max(pd)
-
-    persistence_values = np.sum(pd, axis=1)
-    total_persistence = np.sum(persistence_values) / len(persistence_values)
-
-    print(f'Total persistence: {total_persistence:.2f}')
-
-
 class CalculatePersistentHomology:
     """Persistent homology calculation callback.
 
