@@ -1,6 +1,7 @@
 """Topology-based diffusion condensation scheme."""
 
 import argparse
+import logging
 import sys
 
 import numpy as np
@@ -240,6 +241,8 @@ class DiffusionCondensation:
         # each step. This is used to keep track of return probabilities.
         P_t = np.identity(n)
 
+        logging.info('Started diffusion condensation process')
+
         with yaspin(spinner=Spinners.dots) as sp:
             while i - j > 1:
 
@@ -277,6 +280,7 @@ class DiffusionCondensation:
                 epsilon *= 2
                 Q_diff = np.inf
 
+        logging.info('Finished diffusion condensation process')
         return data
 
 
@@ -416,6 +420,14 @@ def condensation(X, epsilon):
 
 if __name__ == '__main__':
 
+    # Set up logging to obtain some nice output information, runtime,
+    # and much more.
+    logging.basicConfig(
+        format= '%(asctime)s.%(msecs)03d  [%(levelname)-10s] %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+        level=logging.DEBUG
+    )
+
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '-d', '--data',
@@ -433,7 +445,7 @@ if __name__ == '__main__':
         '-e', '--epsilon',
         # TODO: ensure that this makes sense and be adjusted more
         # easily, depending on the number of points etc.
-        default=np.pi / 128,
+        default=np.nan,
         type=float,
     )
 
@@ -445,6 +457,15 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     this = sys.modules[__name__]
+
+    if np.isnan(args.epsilon):
+        args.epsilon = np.pi / args.num_samples
+
+        logging.info(
+            f'Epsilon parameter has not been set. Calculating '
+            f'it based on {args.num_samples} points as '
+            f'{args.epsilon:.4f}.'
+        )
 
     # Search for a generator routine, as requested by the client. This
     # does not fail gracefully.
