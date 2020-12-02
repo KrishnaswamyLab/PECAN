@@ -1,6 +1,12 @@
 """Utility functions and classes."""
 
 
+def generate_output_filename(args, suffix='.npz'):
+    """Generate output filename string from CLI arguments."""
+    result = f'{args.data}_n{args.num_samples}{suffix}'
+    return result
+
+
 class UnionFind:
     """An implementation of a Union--Find class.
 

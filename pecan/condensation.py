@@ -22,6 +22,7 @@ from data import hyperuniform_ellipse
 
 from ripser import Ripser
 
+from utilities import generate_output_filename
 from utilities import UnionFind
 
 
@@ -421,7 +422,7 @@ if __name__ == '__main__':
     # Set up logging to obtain some nice output information, runtime,
     # and much more.
     logging.basicConfig(
-        format= '%(asctime)s.%(msecs)03d  [%(levelname)-10s] %(message)s',
+        format='%(asctime)s.%(msecs)03d  [%(levelname)-10s] %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
         level=logging.DEBUG
     )
@@ -465,9 +466,15 @@ if __name__ == '__main__':
             f'{args.epsilon:.4f}.'
         )
 
+    logging.info(f'Data set: {args.data}')
+    logging.info(f'Number of samples: {args.num_samples}')
+    logging.info(f'Epsilon: {args.epsilon:.4f}')
+
     # Search for a generator routine, as requested by the client. This
     # does not fail gracefully.
     generator = getattr(this, args.data)
+
+    logging.debug(f'Using generator routine {generator}')
 
     X, C = generator(args.num_samples, random_state=42)
 
@@ -509,7 +516,12 @@ if __name__ == '__main__':
         persistent_homology.persistence_points.items()
     })
 
+    # Storing the full data set. This is either specified by the client
+    # or we pick an output filename.
+
     if args.output is None:
-        args.output = args.data + '.npz'
+        args.output = generate_output_filename(args)
+
+    logging.info(f'Storing results in {args.output}')
 
     np.savez(args.output, **data)
