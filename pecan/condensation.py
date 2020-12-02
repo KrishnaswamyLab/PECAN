@@ -39,16 +39,6 @@ def analyse_persistence_diagram(data):
     print(f'Total persistence: {total_persistence:.2f}')
 
 
-def make_affinity_matrix(X, epsilon):
-    """Calculate affinity matrix.
-
-    This functions calculates an affinity matrix from an input matrix.
-    The input matrix is required to be of shape $(n, d)$, with $n$ and
-    $d$ representing the number of samples and dimensions.
-    """
-    return rbf_kernel(X, gamma=1.0 / epsilon)
-
-
 class CalculatePersistentHomology:
     """Persistent homology calculation callback.
 
@@ -186,7 +176,11 @@ class DiffusionCondensation:
     such as further processing operations, may be integrated.
     """
 
-    def __init__(self, callbacks=[], prefix='data_'):
+    def __init__(
+        self,
+        callbacks=[],
+        prefix='data_',
+    ):
         """Initialise new instance and register callbacks.
 
         Parameters
@@ -209,6 +203,10 @@ class DiffusionCondensation:
         """
         self.callbacks = callbacks
         self.prefix = prefix
+
+        # TODO: this could be made configurable, but at present, I am
+        # relying on a precise signature of this function.
+        self.kernel_fn = self.make_affinity_matrix
 
     def __call__(self, X, epsilon):
         """Run condensation process for a given data set."""
@@ -256,7 +254,7 @@ class DiffusionCondensation:
                     # label assignments changed.
                     D = euclidean_distances(X)
 
-                    A = make_affinity_matrix(X, epsilon)
+                    A = self.kernel_fn(X, epsilon)
                     Q = np.sum(A, axis=1)
                     K = np.diag(1.0 / Q) @ A @ np.diag(1.0 / Q)
                     P = np.diag(1.0 / np.sum(K, axis=1)) @ K
@@ -278,6 +276,24 @@ class DiffusionCondensation:
 
         logging.info('Finished diffusion condensation process')
         return data
+
+    @staticmethod
+    def make_affinity_matrix(X, epsilon):
+        """Calculate affinity matrix.
+
+        This functions calculates an affinity matrix from an input matrix.
+        The input matrix is required to be of shape $(n, d)$, with $n$ and
+        $d$ representing the number of samples and dimensions.
+
+        Parameters
+        ----------
+        X : np.array of shape (n, m)
+            Input matrix with `n` samples and `m` features.
+
+        epsilon : float
+            Smoothing parameter for the kernel calculation.
+        """
+        return rbf_kernel(X, gamma=1.0 / epsilon)
 
 
 def condensation(X, epsilon):
