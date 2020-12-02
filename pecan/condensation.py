@@ -466,6 +466,9 @@ if __name__ == '__main__':
 
     data = diffusion_condensation(X, args.epsilon)
 
+    # Collect additional information provided by the functors and add it
+    # to the output data frame.
+
     data.update({
         f'return_probabilities_t_{i}': prob for i, prob in
         return_probabilities.return_probabilities.items()
@@ -475,6 +478,16 @@ if __name__ == '__main__':
         'diffusion_homology_persistence_pairs': np.asarray(
             diffusion_homology.persistence_pairs
         )
+    })
+
+    data.update({
+        f'persistence_pairs_t_{i}': pairs for i, pairs in
+        persistent_homology.persistence_pairs.items()
+    })
+
+    data.update({
+        f'persistence_points_t_{i}': pairs for i, pairs in
+        persistent_homology.persistence_points.items()
     })
 
     if args.output is None:
