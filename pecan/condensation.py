@@ -74,7 +74,7 @@ class CalculatePersistentHomology:
         # Add additional information about the dimension of each
         # topological feature.
         dimension = np.asarray([
-            len(c) - 1 for c in tuples
+            len(c) - 1 for c, _ in tuples
         ])
 
         # Adds the dimension as an additional column, turning the 2D
