@@ -1,6 +1,44 @@
 """Utility functions and classes."""
 
 
+def parse_keys(data):
+    """Extract keys from a set of matrices.
+
+    The goal of this function is to parse the keys of a set of matrices
+    and return them for subsequent processing. Keys will be checked for
+    being time-varying. If so, the time steps will be extracted as well
+    and corresponding tuples will be returned.
+
+    The output of this function is dictionary mapping the name of a key
+    to a list of instances of the key, plus optional time steps::
+
+        {
+            # Time-varying
+            'data': [
+                ('data_t_0', 0),
+                ('data_t_1', 1),
+                ('data_t_2', 2),
+            ],
+
+            # Static
+            'diffusion_homology_pairs': [
+                ('diffusion_homology_pairs', None)
+            ]
+        }
+
+    Parameters
+    ----------
+    data : `dict` of `np.array`
+        A sequence of matrices, typically originating from an `.npz`
+        file that was loaded.
+
+    Returns
+    -------
+    Dictionary with parsed keys, as described in the example above.
+    """
+    pass
+
+
 def generate_output_filename(args, suffix='.npz'):
     """Generate output filename string from CLI arguments."""
     result = f'{args.data}_n{args.num_samples}{suffix}'
