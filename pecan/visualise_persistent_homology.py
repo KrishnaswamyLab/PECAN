@@ -1,8 +1,10 @@
 """Analyse topology of the condensation process."""
 
 import argparse
+import sys
 
 import matplotlib.collections
+import matplotlib.colors
 import matplotlib.lines
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
@@ -11,86 +13,116 @@ from mpl_toolkits.mplot3d import Axes3D
 
 import numpy as np
 
-
-# Will be updated later on by the animation. I know that this is
-# horrible, but it's the easiest way :)
-scatter = None
-
-
-def get_limits(data):
-    x = np.asarray([X[:, 0] for X in data]).flatten()
-    y = np.asarray([X[:, 1] for X in data]).flatten()
-
-    x_min = np.min(x)
-    x_max = np.max(x)
-    y_min = np.min(y)
-    y_max = np.max(y)
-
-    return x_min, x_max, y_min, y_max
+from utilities import parse_keys
+from utilities import make_tensor
+from utilities import get_limits
 
 
 def update(i):
-    global scatter
-    if scatter is None:
-        scatter = ax[0].scatter(X[0][:, 0], X[0][:, 1])
-    else:
-        scatter.set_offsets(X[i])
+    """Update callback for the animation."""
+    # Update time-varying point cloud, similarly to the other plotting
+    # scripts.
+    scatter.set_offsets(X[..., i])
+    ax[0].set_title(f'Data (2D) @ $t={i}$')
 
-    ax[0].set_title(f'$t={T[i]}$')
+    persistence_diagram.set_offsets(persistence_diagrams[i][:, 0:2])
+    ax[1].set_title(f'Persistence diagram @ $t={i}$')
 
-    from gtda.homology import VietorisRipsPersistence
+    #VR = VietorisRipsPersistence(
+    #        homology_dimensions=[1],
+    #        infinity_values=1.0,
+    #        reduced_homology=False,
+    #)
+    #diagrams = VR.fit_transform([X[i]])
 
-    VR = VietorisRipsPersistence(
-            homology_dimensions=[1],
-            infinity_values=1.0,
-            reduced_homology=False,
-    )
-    diagrams = VR.fit_transform([X[i]])
-
-    # We only have a single set of homology features anyway, so there's
-    # no need to select anything here.
-    diagram = diagrams[0][:, 0:2]
-    persistence_diagram.set_offsets(diagram)
+    ## We only have a single set of homology features anyway, so there's
+    ## no need to select anything here.
+    #diagram = diagrams[0][:, 0:2]
+    #persistence_diagram.set_offsets(diagram)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('INPUT')
-    parser.add_argument('-r', '--repeat', action='store_true')
-    parser.add_argument('-i', '--interval', type=int, default=200)
+
+    parser.add_argument(
+        '-i', '--interval', default=200, type=int,
+        help='Update interval'
+    )
+
+    parser.add_argument(
+        '-r', '--repeat',
+        action='store_true',
+        help='Indicates whether animation should loop'
+    )
 
     args = parser.parse_args()
 
+    # Check whether all keys are available. We require persistence
+    # points, persistence pairs, and obviously a data set.
     data = np.load(args.INPUT, allow_pickle=True)
+    parsed_keys = parse_keys(data)
 
-    fig, ax = plt.subplots(ncols=2, figsize=(6,3))
+    assert 'data' in parsed_keys, 'Require "data" key'
 
-    X = []
-    T = []
+    assert 'persistence_points' in parsed_keys, \
+        'Require "persistence_points" key'
 
-    for key in data.keys():
-        if key.startswith('t'):
-            X.append(data[key])
-            T.append(int(key.split('_')[1]))
+    assert 'persistence_pairs' in parsed_keys, \
+        'Require "persistence_pairs" key'
+
+    # Prepare point cloud visualisation
+
+    X = make_tensor(data, parsed_keys['data'])
+    T = X.shape[-1]
+
+    fig, ax = plt.subplots(ncols=2, figsize=(6, 3))
 
     x_min, x_max, y_min, y_max = get_limits(X)
 
     ax[0].set_xlim((x_min, x_max))
     ax[0].set_ylim((y_min, y_max))
 
-    # The persistence diagram is always scaled to [0,1] x [0,1].
-    ax[1].set_xlim(-0.1, 1.1)
-    ax[1].set_ylim(-0.1, 1.1)
+    # Render first time step before the animation starts.
+    scatter = ax[0].scatter(X[:, 0, 0], X[:, 1, 0])
+
+    # Show persistence points in all dimensions (collated). To this end,
+    # collect all the diagrams in one vector.
+
+    persistence_diagrams = [
+        data[key] for key, _ in parsed_keys['persistence_points']
+    ]
+
+    y_max = 0.0
+    for pd in persistence_diagrams:
+        y_max = max(y_max, np.max(pd[:, 1]))
+
+    # TODO: this assumes that we are always visualising zero-dimensional
+    # persistent homology. If this is *not* the case, the limits need to
+    # be updated.
+    ax[1].set_xlim(-0.1, y_max * 1.05)
+    ax[1].set_ylim(-0.1, y_max * 1.05)
     ax[1].axline((-0.1, -0.1), slope=1.0, c='k')
-    persistence_diagram = ax[1].scatter(x=[], y=[])
+
+    # Show the diagram of the initial point cloud
+    persistence_diagram = ax[1].scatter(
+        x=persistence_diagrams[0][:, 0],
+        y=persistence_diagrams[0][:, 1],
+        c=persistence_diagrams[0][:, 2],
+        cmap=matplotlib.colors.ListedColormap(['r', 'b'])
+    )
 
     ani = animation.FuncAnimation(
         fig,
         update,
-        frames=len(X),
+        frames=T,
         repeat=args.repeat,
         interval=args.interval,
     )
+
+    plt.show()
+
+    sys.exit(0)
 
     fig = plt.figure()
     ax3 = fig.add_subplot(111, projection='3d')
