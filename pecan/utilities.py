@@ -3,6 +3,44 @@
 import collections
 import re
 
+import numpy as np
+
+
+def make_tensor(data, parsed_keys):
+    """Create a tensor from a time-varying data set.
+
+    This function takes a time-varying data set of the same (!) shape
+    and turns it into a tensor whose last axis denotes the time steps
+    of the process.
+
+    Parameters
+    ----------
+    data : `dict` of `np.array`
+        A sequence of matrices, typically originating from an `.npz`
+        file that was loaded.
+
+    parsed_keys : list of tuples
+        List of `(key, t)` tuples, where `key` indicates the
+        corresponding key and `t` the time step.
+
+    Returns
+    -------
+    Tensor comprising all data arrays that match the supplied key, with
+    an additional axis (the last one) representing time.
+    """
+    T = len(parsed_keys)
+
+    if not T:
+        return None
+
+    shape = data[parsed_keys[0][0]].shape
+    X = np.empty(shape=(*shape, T))
+
+    for key, t in parsed_keys:
+        X[..., t] = data[key]
+
+    return X
+
 
 def parse_keys(data):
     """Extract keys from a set of matrices.
