@@ -9,24 +9,26 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 
+from utilities import parse_keys
+from utilities import make_tensor
 
-def get_limits(data):
-    x = np.asarray([X[:, 0] for X in data]).flatten()
-    y = np.asarray([X[:, 1] for X in data]).flatten()
 
-    x_min = np.min(x)
-    x_max = np.max(x)
-    y_min = np.min(y)
-    y_max = np.max(y)
+def get_limits(X):
+    """Calculate plotting limits of input tensor."""
+    x = np.asarray(X[:, 0, ...]).flatten()
+    y = np.asarray(X[:, 1, ...]).flatten()
+
+    x_min, x_max = np.min(x), np.max(x)
+    y_min, y_max = np.min(y), np.max(y)
 
     return x_min, x_max, y_min, y_max
 
 
 def update(i):
-    scatter.set_offsets(X[i])
+    scatter.set_offsets(X[..., i])
 
     # Figure out all intervals to draw here
-    values = [destruction for _, destruction in pd if destruction <= T[i]]
+    values = [destruction for _, destruction in pd if destruction <= i]
 
     segments = [
         [(0, i), (destruction, i)] for i, destruction in enumerate(values)
@@ -42,43 +44,54 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+    # Load data and check whether all keys are available. We require
+    # only the diffusion homology pairs and the data set here.
     data = np.load(args.INPUT)
+    parsed_keys = parse_keys(data)
 
+    assert 'data' in parsed_keys, 'Require "data" key'
+
+    assert 'diffusion_homology_persistence_pairs' in parsed_keys, \
+        'Require "diffusion_homology_persistence_pairs" key'
+
+    X = make_tensor(data, parsed_keys['data'])
+    T = X.shape[-1]
+
+    # Plot dynamic point cloud first. This assumes that only two
+    # dimensions are available; higher-dimensional data may need
+    # an additional dimensionality reduction step before-hand.
     fig, ax = plt.subplots(ncols=2)
 
-    # Store all times and all variants of the data set. This makes the
-    # visualisation easier.
-    X = []
-    T = []
-
-    for key in data.keys():
-        if key.startswith('t'):
-            X.append(data[key])
-            T.append(int(key.split('_')[1]))
-
     x_min, x_max, y_min, y_max = get_limits(X)
-
-    scatter = ax[0].scatter(X[0][:, 0], X[1][:, 1])
 
     ax[0].set_xlim((x_min, x_max))
     ax[0].set_ylim((y_min, y_max))
 
-    pd = data['D']
+    # Render first time step before the animation starts.
+    scatter = ax[0].scatter(X[:, 0, 0], X[:, 1, 0])
 
-    # Ensures that there is always a persistence diagram available.
-    if len(pd) == 0:
-        pd = np.asarray([(0, 1)])
+    # Set up the diffusion homology pairing. This just amounts to
+    # accessing the distribution of pairs and turning them into a
+    # barcode visualisation.
 
-    ax[1].set_xlim(0, np.max(pd[:, 1]))
-    ax[1].set_ylim(0, len(pd[:, 1]))
+    # List of persistence pairs of the form (creation, destruction). An
+    # optional third dimension is ignored.
+    pd = data['diffusion_homology_persistence_pairs']
+
+    ax[1].set_xlim(0, np.max(pd[:, 1]))     # Length of longest bar
+    ax[1].set_ylim(0, len(pd[:, 1]))        # How many bars?
 
     barcode = matplotlib.collections.LineCollection(segments=[])
     ax[1].add_collection(barcode)
 
+    # Basic animation setup; it will loop over all the frames in the
+    # data set and depict the corresponding topological features in
+    # a barcode plot.
+
     ani = animation.FuncAnimation(
         fig,
         update,
-        frames=len(X),
+        frames=T,
         repeat=args.repeat,
     )
 
