@@ -18,6 +18,11 @@ from utilities import make_tensor
 from utilities import get_limits
 
 
+def total_persistence(diagram, p=2):
+    """Calculate total persistence of a persistence diagram."""
+    return np.sum(np.power(np.abs(np.diff(diagram[:, 0:2])), 2))
+
+
 def update(i):
     """Update callback for the animation."""
     # Update time-varying point cloud, similarly to the other plotting
@@ -64,7 +69,7 @@ if __name__ == '__main__':
     X = make_tensor(data, parsed_keys['data'])
     T = X.shape[-1]
 
-    fig, ax = plt.subplots(ncols=2, figsize=(6, 3))
+    fig, ax = plt.subplots(ncols=3, figsize=(8, 3))
 
     x_min, x_max, y_min, y_max = get_limits(X)
 
@@ -92,12 +97,14 @@ if __name__ == '__main__':
     ax[1].set_ylim(-0.1, y_max * 1.05)
     ax[1].axline((-0.1, -0.1), slope=1.0, c='k')
 
+    cm = matplotlib.colors.ListedColormap(['r', 'b'])
+
     # Show the diagram of the initial point cloud
     persistence_diagram = ax[1].scatter(
         x=persistence_diagrams[0][:, 0],
         y=persistence_diagrams[0][:, 1],
         c=persistence_diagrams[0][:, 2],
-        cmap=matplotlib.colors.ListedColormap(['r', 'b'])
+        cmap=cm,
     )
 
     ani = animation.FuncAnimation(
@@ -108,6 +115,15 @@ if __name__ == '__main__':
         interval=args.interval,
     )
 
+    # Total persistence calculations, aggregated over dimensions. For
+    # now, only dimension 0 and dimension 1 are supported.
+    for dimension in [0, 1]:
+        diagrams = [d[d[:, 2] == dimension] for d in persistence_diagrams]
+        values = [total_persistence(d) for d in diagrams]
+
+        ax[2].plot(values, c=cm(dimension)) 
+
+    plt.tight_layout()
     plt.show()
 
     sys.exit(0)
