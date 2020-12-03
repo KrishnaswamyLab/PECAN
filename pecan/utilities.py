@@ -1,5 +1,8 @@
 """Utility functions and classes."""
 
+import collections
+import re
+
 
 def parse_keys(data):
     """Extract keys from a set of matrices.
@@ -36,7 +39,23 @@ def parse_keys(data):
     -------
     Dictionary with parsed keys, as described in the example above.
     """
-    pass
+    # Parses a time-varying key. If a string matches this regular
+    # expression, it is time-varying.
+    re_time = r'(.*)_t_(\d+)$'
+
+    parsed_keys = collections.defaultdict(list)
+
+    for key in data.keys():
+        m = re.match(re_time, key)
+        if m:
+            name = m.group(1)
+            time = int(m.group(2))
+
+            parsed_keys[name].append((key, time))
+        else:
+            parsed_keys[key].append((key, None))
+
+    return parsed_keys
 
 
 def generate_output_filename(args, suffix='.npz'):
