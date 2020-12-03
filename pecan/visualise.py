@@ -25,6 +25,7 @@ def get_limits(X):
 
 
 def update(i):
+    """Update function for animation."""
     scatter.set_offsets(X[..., i])
 
     # Figure out all intervals to draw here
@@ -40,7 +41,17 @@ def update(i):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('INPUT')
-    parser.add_argument('-r', '--repeat', action='store_true')
+
+    parser.add_argument(
+        '-i', '--interval', default=200, type=int,
+        help='Update interval'
+    )
+
+    parser.add_argument(
+        '-r', '--repeat',
+        action='store_true',
+        help='Indicates whether animation should loop'
+    )
 
     args = parser.parse_args()
 
@@ -92,6 +103,7 @@ if __name__ == '__main__':
         fig,
         update,
         frames=T,
+        interval=args.interval,
         repeat=args.repeat,
     )
 
