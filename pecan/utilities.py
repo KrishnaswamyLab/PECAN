@@ -6,6 +6,33 @@ import re
 import numpy as np
 
 
+def get_limits(X):
+    """Calculate plotting limits of an input tensor.
+
+    This auxiliary function calculates the 2D plotting limits of an
+    input tensor.
+
+    Parameters
+    ----------
+    X : np.array
+        Input tensor. Only the first two dimensions of the tensor will
+        be considered.
+
+    Returns
+    -------
+    Tuple of `x_min`, `x_max`, `y_min`, `y_max`, which can be used to
+    restrict the extents of a plot.
+    """
+    x = np.asarray(X[:, 0, ...]).flatten()
+    y = np.asarray(X[:, 1, ...]).flatten()
+
+    x_min, x_max = np.min(x), np.max(x)
+    y_min, y_max = np.min(y), np.max(y)
+
+    return x_min, x_max, y_min, y_max
+
+
+
 def make_tensor(data, parsed_keys):
     """Create a tensor from a time-varying data set.
 

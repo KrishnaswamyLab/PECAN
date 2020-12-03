@@ -11,17 +11,7 @@ import numpy as np
 
 from utilities import parse_keys
 from utilities import make_tensor
-
-
-def get_limits(X):
-    """Calculate plotting limits of input tensor."""
-    x = np.asarray(X[:, 0, ...]).flatten()
-    y = np.asarray(X[:, 1, ...]).flatten()
-
-    x_min, x_max = np.min(x), np.max(x)
-    y_min, y_max = np.min(y), np.max(y)
-
-    return x_min, x_max, y_min, y_max
+from utilities import get_limits
 
 
 def update(i):
