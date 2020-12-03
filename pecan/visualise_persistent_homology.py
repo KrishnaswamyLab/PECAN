@@ -28,18 +28,6 @@ def update(i):
     persistence_diagram.set_offsets(persistence_diagrams[i][:, 0:2])
     ax[1].set_title(f'Persistence diagram @ $t={i}$')
 
-    #VR = VietorisRipsPersistence(
-    #        homology_dimensions=[1],
-    #        infinity_values=1.0,
-    #        reduced_homology=False,
-    #)
-    #diagrams = VR.fit_transform([X[i]])
-
-    ## We only have a single set of homology features anyway, so there's
-    ## no need to select anything here.
-    #diagram = diagrams[0][:, 0:2]
-    #persistence_diagram.set_offsets(diagram)
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
