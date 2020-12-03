@@ -71,10 +71,11 @@ if __name__ == '__main__':
     # Plot dynamic point cloud first. This assumes that only two
     # dimensions are available; higher-dimensional data may need
     # an additional dimensionality reduction step before-hand.
-    fig, ax = plt.subplots(ncols=2)
+    fig, ax = plt.subplots(ncols=3, figsize=(10, 4))
 
     x_min, x_max, y_min, y_max = get_limits(X)
 
+    ax[0].set_title('Data (2D)')
     ax[0].set_xlim((x_min, x_max))
     ax[0].set_ylim((y_min, y_max))
 
@@ -89,6 +90,7 @@ if __name__ == '__main__':
     # optional third dimension is ignored.
     pd = data['diffusion_homology_persistence_pairs']
 
+    ax[1].set_title('Diffusion barcode')
     ax[1].set_xlim(0, np.max(pd[:, 1]))     # Length of longest bar
     ax[1].set_ylim(0, len(pd[:, 1]))        # How many bars?
 
@@ -107,4 +109,16 @@ if __name__ == '__main__':
         repeat=args.repeat,
     )
 
+    # Plot total persistence for every time step; this is a cumulative
+    # sum of the persistence values.
+
+    total_persistence = [
+        np.sum(np.diff(pd[pd[:, 1] <= t])) for t in range(T)
+    ]
+
+    ax[2].set_title('Total persistence (cumulative)')
+    ax[2].plot(total_persistence)
+    ax[2].set_xlabel('$t$')
+
+    plt.tight_layout()
     plt.show()
