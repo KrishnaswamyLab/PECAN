@@ -106,7 +106,11 @@ def make_3d_vine_plot(persistence_pairs, persistence_points):
         global_index += len(first)
 
 
-def make_2d_vine_plot(persistence_pairs, persistence_points):
+def make_2d_vine_plot(
+    persistence_pairs,
+    persistence_points,
+    diffusion_homology_persistence_pairs
+):
     """Create 2D vine plot."""
     # Check whether the number of features coincides for both diagram
     # vectors.
@@ -147,6 +151,10 @@ def make_2d_vine_plot(persistence_pairs, persistence_points):
 
     persistence_values = np.concatenate(persistence_values)
 
+    merge_events = np.unique(diffusion_homology_persistence_pairs[:, 1])
+    for merge_event in merge_events:
+        ax.axvline(merge_event)
+
     # Try to track persistence features but only based on their
     # persistence value; the resulting vines are much easier to
     # interpret. Again, this is kind of like trying to generate
@@ -185,7 +193,6 @@ def make_2d_vine_plot(persistence_pairs, persistence_points):
                     )
 
         global_index += len(first)
-
 
 
 def make_2d_simplex_plot(X):
@@ -246,6 +253,9 @@ if __name__ == '__main__':
     assert 'persistence_pairs' in parsed_keys, \
         'Require "persistence_pairs" key'
 
+    assert 'diffusion_homology_persistence_pairs' in parsed_keys, \
+        'Require "diffusion_homology_persistence_pairs" key'
+
     X = make_tensor(data, parsed_keys['data'])
     T = X.shape[-1]
 
@@ -257,8 +267,15 @@ if __name__ == '__main__':
         data[key] for key, _ in parsed_keys['persistence_pairs']
     ]
 
+    diffusion_homology_persistence_pairs = \
+        data['diffusion_homology_persistence_pairs']
+
     make_3d_vine_plot(persistence_pairs, persistence_points)
-    make_2d_vine_plot(persistence_pairs, persistence_points)
+    make_2d_vine_plot(
+        persistence_pairs,
+        persistence_points,
+        diffusion_homology_persistence_pairs
+    )
 
     if args.show_transpositions:
         make_2d_simplex_plot(X)
