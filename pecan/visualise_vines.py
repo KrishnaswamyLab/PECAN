@@ -4,13 +4,12 @@ import argparse
 import os
 import sys
 
-import matplotlib.collections
-import matplotlib.colors
-import matplotlib.lines
-import matplotlib.animation as animation
+import matplotlib
 import matplotlib.pyplot as plt
 
 import numpy as np
+
+from sklearn.metrics import pairwise_distances
 
 from utilities import parse_keys
 from utilities import make_tensor
@@ -107,7 +106,29 @@ def make_3d_vine_plot(persistence_pairs, persistence_points):
         global_index += len(first)
 
 
+def make_2d_simplex_plot(X):
+    """Create 2D simplex transposition plot."""
+    # Turn `D` into a matrix of shape `(T, M)`, where `T` is the total
+    # number of time steps, and `M` is the total number of edges, i.e.
+    # the number of points squared.
+    D = np.array([
+            pairwise_distances(X_, metric='euclidean').flatten()
+            for X_ in np.rollaxis(X, axis=2)
+        ]
+    )
+
+    fig, ax = plt.subplots()
+
+    for row in D.T:
+        ax.plot(row, c='k')
+
+    ax.set_xlabel('$t$')
+
+
 if __name__ == '__main__':
+
+    matplotlib.rcParams['lines.linewidth'] = 0.75
+
     parser = argparse.ArgumentParser()
     parser.add_argument('INPUT')
 
@@ -137,8 +158,6 @@ if __name__ == '__main__':
     assert 'persistence_pairs' in parsed_keys, \
         'Require "persistence_pairs" key'
 
-    # Prepare point cloud visualisation
-
     X = make_tensor(data, parsed_keys['data'])
     T = X.shape[-1]
 
@@ -151,5 +170,6 @@ if __name__ == '__main__':
     ]
 
     make_3d_vine_plot(persistence_pairs, persistence_points)
+    make_2d_simplex_plot(X)
 
     plt.show()
