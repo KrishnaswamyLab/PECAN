@@ -106,6 +106,88 @@ def make_3d_vine_plot(persistence_pairs, persistence_points):
         global_index += len(first)
 
 
+def make_2d_vine_plot(persistence_pairs, persistence_points):
+    """Create 2D vine plot."""
+    # Check whether the number of features coincides for both diagram
+    # vectors.
+    assert len(persistence_pairs) == len(persistence_points)
+
+    fig = plt.figure()
+    ax = fig.subplots()
+
+    cm = matplotlib.cm.get_cmap('Spectral')
+    T = len(persistence_pairs)
+
+    ax.set_xlabel('$t$')
+    ax.set_ylabel('Persistence')
+
+    # Will contain all persistence values as an $(n, 2)$ matrix, where
+    # $n$ is the total number of persistence features over *all* times
+    # and dimensions 0 corresponds to the persistence.
+    persistence_values = []
+
+    # TODO: make configurable?
+    dimension = 1
+
+    for t, points in enumerate(persistence_points):
+        points = points[points[:, 2] == dimension]
+
+        y = np.abs(points[:, 1] - points[:, 0])
+        x = [t] * len(y)
+
+        ax.scatter(
+            x, y,
+            color=cm(t / (T - 1)),
+            edgecolors='black'
+        )
+
+        persistence_values.append(
+            np.asarray([x, y]).T
+        )
+
+    persistence_values = np.concatenate(persistence_values)
+
+    # Try to track persistence features but only based on their
+    # persistence value; the resulting vines are much easier to
+    # interpret. Again, this is kind of like trying to generate
+    # a persistence vineyard...
+    pairs = []
+
+    # FIXME: this is clunky; the issue is that I need to convert the
+    # persistence pairs, which are stored as lists of varying length,
+    # to a proper pairing.
+    for all_pairs in persistence_pairs:
+        pairs_ = []
+        for sigma, tau in all_pairs:
+            if len(sigma) == dimension + 1:
+                pairs_.append((sigma, tau))
+
+        pairs.append(pairs_)
+
+    # `Pairs` will now contain persistence pairs for each time step, and
+    # we can try matching them.
+    #
+    # TODO: this is *not* a proper replacement for the vineyards!
+    global_index = 0
+    for index, (first, second) in enumerate(zip(pairs, pairs[1:])):
+        for i1, (c1, d1) in enumerate(first):
+            for i2, (c2, d2) in enumerate(second):
+                if c1 == c2 or d1 == d2:
+                    x1, y1 = persistence_values[global_index + i1]
+                    x2, y2 = persistence_values[
+                        global_index + len(first) + i2
+                    ]
+
+                    ax.plot(
+                        [x1, x2],
+                        [y1, y2],
+                        c='k'
+                    )
+
+        global_index += len(first)
+
+
+
 def make_2d_simplex_plot(X):
     """Create 2D simplex transposition plot."""
     # Turn `D` into a matrix of shape `(T, M)`, where `T` is the total
@@ -176,6 +258,7 @@ if __name__ == '__main__':
     ]
 
     make_3d_vine_plot(persistence_pairs, persistence_points)
+    make_2d_vine_plot(persistence_pairs, persistence_points)
 
     if args.show_transpositions:
         make_2d_simplex_plot(X)
