@@ -4,6 +4,7 @@ import argparse
 import os
 import sys
 
+import matplotlib
 import matplotlib.collections
 import matplotlib.colors
 import matplotlib.lines
@@ -36,6 +37,9 @@ def update(i):
 
 
 if __name__ == '__main__':
+
+    matplotlib.rcParams['lines.markersize'] = 4
+
     parser = argparse.ArgumentParser()
     parser.add_argument('INPUT')
 
@@ -84,7 +88,7 @@ if __name__ == '__main__':
     X = make_tensor(data, parsed_keys['data'])
     T = X.shape[-1]
 
-    fig, ax = plt.subplots(ncols=3, figsize=(10, 4))
+    fig, ax = plt.subplots(ncols=4, figsize=(11, 4))
     fig.suptitle(os.path.splitext(os.path.basename(args.INPUT))[0])
 
     x_min, x_max, y_min, y_max = get_limits(X)
@@ -143,7 +147,29 @@ if __name__ == '__main__':
         diagrams = [d[d[:, 2] == dimension] for d in persistence_diagrams]
         values = [total_persistence(d) for d in diagrams]
 
-        ax[2].plot(values, c=cm(dimension)) 
+        ax[2].plot(values, c=cm(dimension))
+        ax[2].set_title('Total persistence')
+        ax[2].set_xlabel('$t$')
+
+    # Persistence values as time-varying scatterplots. This is kind of
+    # a *projection* of all topological features, but at least, we see 
+    # their behaviour over time (without tracking).
+    #
+    # TODO: does it make sense to do this for other dimensions that
+    # dimension 1?
+    for dimension in [1]:
+        diagrams = [d[d[:, 2] == dimension] for d in persistence_diagrams]
+        values = [np.abs(np.diff(d[:, 0:2])).flatten() for d in diagrams]
+
+        for index, value in enumerate(values):
+            ax[3].scatter(
+                y=value,
+                x=[index] * len(value),
+                color=cm(dimension),
+            )
+
+    ax[3].set_title('Persistence over time')
+    ax[3].set_xlabel('$t$')
 
     plt.tight_layout()
     plt.show()
