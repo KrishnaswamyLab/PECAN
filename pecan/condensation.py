@@ -60,7 +60,7 @@ class CalculatePersistentHomology:
         """Update function for this functor."""
         # FIXME: this limit is hard-coded for now because the analysis
         # of larger data sets is made more complicated.
-        if len(X) > 128:
+        if len(X) > 256:
             return
 
         # Calculate topological features alongside the diffusion
