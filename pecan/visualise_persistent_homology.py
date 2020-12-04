@@ -152,7 +152,7 @@ if __name__ == '__main__':
         ax[2].set_xlabel('$t$')
 
     # Persistence values as time-varying scatterplots. This is kind of
-    # a *projection* of all topological features, but at least, we see 
+    # a *projection* of all topological features, but at least, we see
     # their behaviour over time (without tracking).
     #
     # TODO: does it make sense to do this for other dimensions that
@@ -160,6 +160,8 @@ if __name__ == '__main__':
     for dimension in [1]:
         diagrams = [d[d[:, 2] == dimension] for d in persistence_diagrams]
         values = [np.abs(np.diff(d[:, 0:2])).flatten() for d in diagrams]
+
+        ax[3].set_xlim(-1, len(values))
 
         for index, value in enumerate(values):
             ax[3].scatter(
