@@ -33,8 +33,16 @@ def make_3d_vine_plot(persistence_pairs, persistence_points):
     ax.set_xlabel('Creation')
     ax.set_zlabel('Destruction')
 
+    # Will contain all persistence points as an $(n, 3)$ matrix, where
+    # $n$ is the total number of persistence features over *all* times
+    # and dimensions 0/1 correspond to creation/destruction.
+    persistence_diagram_3d = []
+
+    # TODO: make configurable?
+    dimension = 1
+
     for t, points in enumerate(persistence_points):
-        points = points[points[:, 2] == 1]
+        points = points[points[:, 2] == dimension]
 
         x = points[:, 0]
         y = points[:, 1]
@@ -46,27 +54,50 @@ def make_3d_vine_plot(persistence_pairs, persistence_points):
             edgecolors='black'
         )
 
-    return
-
-    D3.append(np.asarray([x, y, z]).T)
+        persistence_diagram_3d.append(
+            np.asarray([x, y, z]).T
+        )
 
     # This is now an (n x 3) matrix, where n is the number of
     # topological features. Columns 1 and 2 correspond to the
     # spatial positions of data, whereas column 3 indicates a
     # time step for a feature.
-    D3 = np.concatenate(D3)
+    persistence_diagram_3d = np.concatenate(persistence_diagram_3d)
 
+    # Try to track persistence features. This is kind of like trying to
+    # generate a persistence vineyard construction and hoping that all
+    # creators remain the same.
+
+    pairs = []
+
+    # FIXME: this is clunky; the issue is that I need to convert the
+    # persistence pairs, which are stored as lists of varying length,
+    # to a proper pairing.
+    for all_pairs in persistence_pairs:
+        pairs_ = []
+        for sigma, tau in all_pairs:
+            if len(sigma) == dimension + 1:
+                pairs_.append((sigma, tau))
+
+        pairs.append(pairs_)
+
+    # `Pairs` will now contain persistence pairs for each time step, and
+    # we can try matching them.
+    #
+    # TODO: this is *not* a proper replacement for the vineyards!
     global_index = 0
     for index, (first, second) in enumerate(zip(pairs, pairs[1:])):
         for i1, (c1, d1) in enumerate(first):
             for i2, (c2, d2) in enumerate(second):
-                if c1 == c2 or  d1 == d2:
+                if c1 == c2 or d1 == d2:
                     print(index, '--', index + 1, c1, d1, c2, d2)
 
-                    x1, y1, z1 = D3[global_index + i1]
-                    x2, y2, z2 = D3[global_index + len(first) + i2]
+                    x1, y1, z1 = persistence_diagram_3d[global_index + i1]
+                    x2, y2, z2 = persistence_diagram_3d[
+                        global_index + len(first) + i2
+                    ]
 
-                    ax3.plot(
+                    ax.plot(
                         [x1, x2],
                         [z1, z2],
                         [y1, y2],
@@ -74,7 +105,6 @@ def make_3d_vine_plot(persistence_pairs, persistence_points):
                     )
 
         global_index += len(first)
-
 
 
 if __name__ == '__main__':
