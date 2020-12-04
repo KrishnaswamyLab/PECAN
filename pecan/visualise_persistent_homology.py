@@ -1,6 +1,7 @@
 """Analyse topology of the condensation process."""
 
 import argparse
+import os
 import sys
 
 import matplotlib.collections
@@ -39,6 +40,13 @@ if __name__ == '__main__':
     parser.add_argument('INPUT')
 
     parser.add_argument(
+        '-f', '--frame',
+        default=None,
+        type=int,
+        help='Specifies frame to show (instead of animation)'
+    )
+
+    parser.add_argument(
         '-i', '--interval', default=200, type=int,
         help='Update interval'
     )
@@ -64,20 +72,30 @@ if __name__ == '__main__':
     assert 'persistence_pairs' in parsed_keys, \
         'Require "persistence_pairs" key'
 
+    # Check whether an animation is desired or not. If not, we just show
+    # a single frame and do not start the animation later on.
+    if args.frame is not None:
+        start_frame = args.frame
+    else:
+        start_frame = 0
+
     # Prepare point cloud visualisation
 
     X = make_tensor(data, parsed_keys['data'])
     T = X.shape[-1]
 
-    fig, ax = plt.subplots(ncols=3, figsize=(8, 3))
+    fig, ax = plt.subplots(ncols=3, figsize=(10, 4))
+    fig.suptitle(os.path.splitext(os.path.basename(args.INPUT))[0])
 
     x_min, x_max, y_min, y_max = get_limits(X)
 
+    ax[0].set_title(f'Data (2D) @ $t={start_frame}$')
     ax[0].set_xlim((x_min, x_max))
     ax[0].set_ylim((y_min, y_max))
 
-    # Render first time step before the animation starts.
-    scatter = ax[0].scatter(X[:, 0, 0], X[:, 1, 0])
+    # Render first frame (or desired frame) before (potentially)
+    # starting the animation.
+    scatter = ax[0].scatter(X[:, 0, start_frame], X[:, 1, start_frame])
 
     # Show persistence points in all dimensions (collated). To this end,
     # collect all the diagrams in one vector.
@@ -96,24 +114,28 @@ if __name__ == '__main__':
     ax[1].set_xlim(-0.1, y_max * 1.05)
     ax[1].set_ylim(-0.1, y_max * 1.05)
     ax[1].axline((-0.1, -0.1), slope=1.0, c='k')
+    ax[1].set_title(f'Persistence diagram @ $t={start_frame}$')
 
     cm = matplotlib.colors.ListedColormap(['r', 'b'])
 
     # Show the diagram of the initial point cloud
     persistence_diagram = ax[1].scatter(
-        x=persistence_diagrams[0][:, 0],
-        y=persistence_diagrams[0][:, 1],
-        c=persistence_diagrams[0][:, 2],
+        x=persistence_diagrams[start_frame][:, 0],
+        y=persistence_diagrams[start_frame][:, 1],
+        c=persistence_diagrams[start_frame][:, 2],
         cmap=cm,
     )
 
-    ani = animation.FuncAnimation(
-        fig,
-        update,
-        frames=T,
-        repeat=args.repeat,
-        interval=args.interval,
-    )
+    # If a start frame has been selected by the user, we should not
+    # start an animation.
+    if args.frame is None:
+        ani = animation.FuncAnimation(
+            fig,
+            update,
+            frames=T,
+            repeat=args.repeat,
+            interval=args.interval,
+        )
 
     # Total persistence calculations, aggregated over dimensions. For
     # now, only dimension 0 and dimension 1 are supported.
