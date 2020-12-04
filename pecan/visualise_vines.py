@@ -143,6 +143,12 @@ if __name__ == '__main__':
         help='Indicates whether animation should loop'
     )
 
+    parser.add_argument(
+        '-t', '--show-transpositions',
+        action='store_true',
+        help='If set, show tranposition plot'
+    )
+
     args = parser.parse_args()
 
     # Check whether all keys are available. We require persistence
@@ -170,6 +176,8 @@ if __name__ == '__main__':
     ]
 
     make_3d_vine_plot(persistence_pairs, persistence_points)
-    make_2d_simplex_plot(X)
+
+    if args.show_transpositions:
+        make_2d_simplex_plot(X)
 
     plt.show()
