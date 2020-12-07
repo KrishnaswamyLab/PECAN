@@ -138,5 +138,8 @@ if __name__ == '__main__':
             interval=args.interval,
         )
 
+        # TODO: make configurable
+        ani.save('/tmp/Condensation_%03d.png')
+
     plt.tight_layout()
     plt.show()
