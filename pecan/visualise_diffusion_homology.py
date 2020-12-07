@@ -1,6 +1,7 @@
 """Visualise output of condensation process."""
 
 import argparse
+import sys
 
 import matplotlib.collections
 import matplotlib.lines
@@ -44,6 +45,9 @@ if __name__ == '__main__':
     )
 
     args = parser.parse_args()
+
+    if args.INPUT == '-':
+        args.INPUT = sys.stdin
 
     # Load data and check whether all keys are available. We require
     # only the diffusion homology pairs and the data set here.
