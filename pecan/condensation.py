@@ -414,7 +414,7 @@ if __name__ == '__main__':
     if args.output is None:
         args.output = generate_output_filename(args)
     elif args.output == '-':
-        args.output = sys.stdout
+        args.output = sys.stdout.buffer
 
     logging.info(f'Storing results in {args.output}')
 
