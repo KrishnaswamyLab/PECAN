@@ -64,7 +64,7 @@ def double_annulus(N, **kwargs):
     return np.asarray(X), np.asarray(C)
 
 
-def annulus(N, r, R):
+def annulus(N, r, R, **kwargs):
     """Sample points from annulus.
 
     This function samples `N` points from an annulus with inner radius `r`
@@ -74,10 +74,16 @@ def annulus(N, r, R):
     ----------
     N : int
         Number of points to sample
+
     r : float
         Inner radius of annulus
+
     R : float
         Outer radius of annulus
+
+    **kwargs:
+        Optional keyword arguments, such as a fixed random state for the
+        pseudo-random number generator.
 
     Returns
     -------
