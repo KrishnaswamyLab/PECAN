@@ -102,7 +102,7 @@ def annulus(N, r, R, **kwargs):
     radii = np.sqrt(np.random.uniform(r**2, R**2, N))
 
     X = np.column_stack((radii * np.cos(thetas), radii * np.sin(thetas)))
-    return X
+    return X, np.linspace(0, 1, N)
 
 
 def hyperuniform_circle(N, **kwargs):
