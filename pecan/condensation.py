@@ -6,14 +6,13 @@ import sys
 
 import numpy as np
 
-import matplotlib.pyplot as plt
-
 from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.metrics.pairwise import rbf_kernel
 
 from yaspin import yaspin
 from yaspin.spinners import Spinners
 
+from data import annulus
 from data import barbell
 from data import double_annulus
 from data import moons
@@ -346,6 +345,22 @@ if __name__ == '__main__':
         type=str,
     )
 
+    parser.add_argument(
+        '-r',
+        default=0.5,
+        type=float,
+        help='Inner radius for annuli and related data sets. Will be used '
+             'whenever it is appropriate.'
+    )
+
+    parser.add_argument(
+        '-R',
+        default=1.0,
+        type=float,
+        help='Outer radius for annuli and related data sets. Will be used '
+             'whenever it is appropriate.'
+    )
+
     args = parser.parse_args()
     this = sys.modules[__name__]
 
@@ -368,7 +383,12 @@ if __name__ == '__main__':
 
     logging.debug(f'Using generator routine {generator}')
 
-    X, C = generator(args.num_samples, random_state=42)
+    X, C = generator(
+        args.num_samples,
+        random_state=42,
+        r=args.r,
+        R=args.R
+    )
 
     diffusion_homology = CalculateDiffusionHomology()
     return_probabilities = CalculateReturnProbabilities(K=8)
