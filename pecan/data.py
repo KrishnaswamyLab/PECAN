@@ -6,7 +6,7 @@ import numpy as np
 def moons(N, random_state=None, **kwargs):
     """Generate moons data set with labels."""
     from sklearn.datasets import make_moons
-    return make_moons(N, random_state=42)
+    return make_moons(N, random_state=kwargs['random_state'])
 
 
 def barbell(N, beta=1, **kwargs):
@@ -62,6 +62,41 @@ def double_annulus(N, **kwargs):
 
     X = (X - np.min(X)) / (np.max(X) - np.min(X))
     return np.asarray(X), np.asarray(C)
+
+
+def annulus(N, r, R):
+    """Sample points from annulus.
+
+    This function samples `N` points from an annulus with inner radius `r`
+    and outer radius `R`.
+
+    Parameters
+    ----------
+    N : int
+        Number of points to sample
+    r : float
+        Inner radius of annulus
+    R : float
+        Outer radius of annulus
+
+    Returns
+    -------
+    Array of (x, y) coordinates.
+    """
+    if r >= R:
+        raise RuntimeError(
+            'Inner radius must be less than or equal to '
+            'outer radius'
+        )
+
+    thetas = np.random.uniform(0, 2 * np.pi, N)
+
+    # Need to sample based on squared radii to account for density
+    # differences.
+    radii = np.sqrt(np.random.uniform(r**2, R**2, N))
+
+    X = np.column_stack((radii * np.cos(thetas), radii * np.sin(thetas)))
+    return X
 
 
 def hyperuniform_circle(N, **kwargs):
