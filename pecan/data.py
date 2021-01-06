@@ -151,3 +151,24 @@ def hyperuniform_ellipse(N, a=0.5, b=1, **kwargs):
         X.append((a*np.cos(t), b*np.sin(t)))
 
     return np.asarray(X), np.asarray(C)
+
+
+def linked_hyperuniform_circles(N, **kwargs):
+    """Generate linked hyperuniformly-sampled 2D circles and colours."""
+    X = []
+    C = np.linspace(0, 1, N)
+
+    theta = np.linspace(0, 2*np.pi, N // 2, endpoint=False)
+    theta = np.concatenate((theta, theta))
+
+    print(theta.shape)
+
+    for i, t in enumerate(theta):
+        if i < N // 2:
+            X.append((np.cos(t), np.sin(t)))
+        # Shift the second circle away so that they are only linked at
+        # a single point.
+        else:
+            X.append((2 + np.cos(t), np.sin(t)))
+
+    return np.asarray(X), np.asarray(C)

@@ -18,6 +18,7 @@ from data import double_annulus
 from data import moons
 from data import hyperuniform_circle
 from data import hyperuniform_ellipse
+from data import linked_hyperuniform_circles
 
 from ripser import Ripser
 
