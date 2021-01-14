@@ -19,7 +19,16 @@ from utilities import get_limits
 
 def update_barcode(i):
     """Update callback for animated barcodes."""
-    pass
+
+    print(i)
+
+    values = [destruction for _, destruction in X if destruction <= i]
+
+    segments = [
+        [(0, i), (destruction, i)] for i, destruction in enumerate(values)
+    ]
+
+    barcode.set_segments(segments)
 
 
 def update(i):
@@ -72,14 +81,25 @@ if __name__ == '__main__':
     data = np.load(args.INPUT, allow_pickle=True)
     parsed_keys = parse_keys(data)
 
+    print(parsed_keys)
+
     if args.type == 'condensation':
         assert 'data' in parsed_keys, 'Require "data" key'
+        key = 'data'
+        update_fn = update
+
     elif args.type == 'barcode':
-        assert 'persistence_points' in parsed_keys, \
-            'Require "persistence_points" key'
+        assert 'diffusion_homology_persistence_pairs' in parsed_keys, \
+            'Require "diffusion_homology_persistence_pairs" key'
+
+        key = 'persistence_points'
+        update_fn = update_barcode
+
     elif args.type == 'diagram':
         assert 'persistence_pairs' in parsed_keys, \
             'Require "persistence_pairs" key'
+
+        key = 'persistence_pairs'
     else:
         raise RuntimeError(f'Type "{args.type}" is unexpected')
 
@@ -91,24 +111,42 @@ if __name__ == '__main__':
         start_frame = 0
 
     # Prepare point cloud visualisation
-
     X = make_tensor(data, parsed_keys['data'])
     T = X.shape[-1]
 
-    fig, ax = plt.subplots(ncols=1, figsize=(3, 3))
-    #fig.suptitle(os.path.splitext(os.path.basename(args.INPUT))[0])
+    if args.type == 'barcode':
+        X = data['diffusion_homology_persistence_pairs']
+
+    fig, ax = plt.subplots(ncols=1, figsize=(4, 4))
+    fig.suptitle(os.path.splitext(os.path.basename(args.INPUT))[0])
 
     ax = [ax]
 
-    x_min, x_max, y_min, y_max = get_limits(X)
+    if args.type == 'condensation':
 
-    ax[0].set_title(f'Data (2D) @ $t={start_frame}$')
-    ax[0].set_xlim((x_min, x_max))
-    ax[0].set_ylim((y_min, y_max))
+        x_min, x_max, y_min, y_max = get_limits(X)
 
-    # Render first frame (or desired frame) before (potentially)
-    # starting the animation.
-    scatter = ax[0].scatter(X[:, 0, start_frame], X[:, 1, start_frame])
+        ax[0].set_title(f'Data (2D) @ $t={start_frame}$')
+        ax[0].set_xlim((x_min, x_max))
+        ax[0].set_ylim((y_min, y_max))
+
+        # Render first frame (or desired frame) before (potentially)
+        # starting the animation.
+        scatter = ax[0].scatter(X[:, 0, start_frame], X[:, 1, start_frame])
+
+    elif args.type == 'barcode':
+
+        x_min, x_max, y_min, y_max = get_limits(X)
+
+        ax[0].set_title('Diffusion barcode')
+        ax[0].set_xlim(0, np.max(X[:, 1]))     # Length of longest bar
+        ax[0].set_ylim(0, len(X[:, 1]))        # How many bars?
+
+        barcode = matplotlib.collections.LineCollection(segments=[])
+        ax[0].add_collection(barcode)
+
+        # Populate barcode directly with the first frame.
+        update_fn(start_frame)
 
     # Show persistence points in all dimensions (collated). To this end,
     # collect all the diagrams in one vector.
@@ -144,14 +182,14 @@ if __name__ == '__main__':
     if args.frame is None:
         ani = animation.FuncAnimation(
             fig,
-            update,
+            update_fn,
             frames=T,
             repeat=args.repeat,
             interval=args.interval,
         )
 
         # TODO: make configurable
-        ani.save('/tmp/Condensation_%03d.png', writer='imagemagick')
+        #ani.save('/tmp/Condensation_%03d.png', writer='imagemagick')
 
     plt.tight_layout()
     plt.show()
