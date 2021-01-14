@@ -171,15 +171,6 @@ if __name__ == '__main__':
 
         update_fn(start_frame)
 
-    
-    # Show the diagram of the initial point cloud
-    #persistence_diagram = ax[1].scatter(
-    #    x=persistence_diagrams[start_frame][:, 0],
-    #    y=persistence_diagrams[start_frame][:, 1],
-    #    c=persistence_diagrams[start_frame][:, 2],
-    #    cmap=cm,
-    #)
-
     # If a start frame has been selected by the user, we should not
     # start an animation.
     if args.frame is None:
@@ -192,7 +183,7 @@ if __name__ == '__main__':
         )
 
         # TODO: make configurable
-        #ani.save('/tmp/Condensation_%03d.png', writer='imagemagick')
+        ani.save('/tmp/Condensation_%03d.png', writer='imagemagick')
 
     plt.tight_layout()
     plt.show()
