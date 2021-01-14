@@ -17,11 +17,14 @@ from utilities import make_tensor
 from utilities import get_limits
 
 
+def update_diagram(i):
+    """Update callback for animated persistence diagram."""
+    persistence_diagram.set_offsets(X[i][:, 0:2])
+    ax[0].set_title(f'Persistence diagram @ $t={i}$')
+
+
 def update_barcode(i):
     """Update callback for animated barcodes."""
-
-    print(i)
-
     values = [destruction for _, destruction in X if destruction <= i]
 
     segments = [
@@ -37,9 +40,6 @@ def update(i):
     # scripts.
     scatter.set_offsets(X[..., i])
     ax[0].set_title(f'Data (2D) @ $t={i}$')
-
-    #persistence_diagram.set_offsets(persistence_diagrams[i][:, 0:2])
-    #ax[1].set_title(f'Persistence diagram @ $t={i}$')
 
 
 if __name__ == '__main__':
@@ -81,8 +81,6 @@ if __name__ == '__main__':
     data = np.load(args.INPUT, allow_pickle=True)
     parsed_keys = parse_keys(data)
 
-    print(parsed_keys)
-
     if args.type == 'condensation':
         assert 'data' in parsed_keys, 'Require "data" key'
         key = 'data'
@@ -92,14 +90,13 @@ if __name__ == '__main__':
         assert 'diffusion_homology_persistence_pairs' in parsed_keys, \
             'Require "diffusion_homology_persistence_pairs" key'
 
-        key = 'persistence_points'
         update_fn = update_barcode
 
     elif args.type == 'diagram':
         assert 'persistence_pairs' in parsed_keys, \
             'Require "persistence_pairs" key'
 
-        key = 'persistence_pairs'
+        update_fn = update_diagram
     else:
         raise RuntimeError(f'Type "{args.type}" is unexpected')
 
@@ -116,6 +113,10 @@ if __name__ == '__main__':
 
     if args.type == 'barcode':
         X = data['diffusion_homology_persistence_pairs']
+    elif args.type == 'diagram':
+        X = [
+            data[key] for key, _ in parsed_keys['persistence_points']
+        ]
 
     fig, ax = plt.subplots(ncols=1, figsize=(4, 4))
     fig.suptitle(os.path.splitext(os.path.basename(args.INPUT))[0])
@@ -148,27 +149,29 @@ if __name__ == '__main__':
         # Populate barcode directly with the first frame.
         update_fn(start_frame)
 
-    # Show persistence points in all dimensions (collated). To this end,
-    # collect all the diagrams in one vector.
+    elif args.type == 'diagram':
 
-   # persistence_diagrams = [
-   #     data[key] for key, _ in parsed_keys['persistence_points']
-   # ]
+        cm = matplotlib.colors.ListedColormap(['r', 'b'])
 
-   # y_max = 0.0
-   # for pd in persistence_diagrams:
-   #     y_max = max(y_max, np.max(pd[:, 1]))
+        y_max = 0.0
+        for pd in X:
+            y_max = max(y_max, np.max(pd[:, 1]))
 
-    # TODO: this assumes that we are always visualising zero-dimensional
-    # persistent homology. If this is *not* the case, the limits need to
-    # be updated.
-    #ax[1].set_xlim(-0.1, y_max * 1.05)
-    #ax[1].set_ylim(-0.1, y_max * 1.05)
-    #ax[1].axline((-0.1, -0.1), slope=1.0, c='k')
-    #ax[1].set_title(f'Persistence diagram @ $t={start_frame}$')
+        ax[0].set_xlim(-0.1, y_max * 1.05)
+        ax[0].set_ylim(-0.1, y_max * 1.05)
+        ax[0].axline((-0.1, -0.1), slope=1.0, c='k')
+        ax[0].set_title(f'Persistence diagram @ $t={start_frame}$')
 
-    cm = matplotlib.colors.ListedColormap(['r', 'b'])
+        persistence_diagram = ax[0].scatter(
+            x=X[start_frame][:, 0],
+            y=X[start_frame][:, 1],
+            c=X[start_frame][:, 2],
+            cmap=cm,
+        )
 
+        update_fn(start_frame)
+
+    
     # Show the diagram of the initial point cloud
     #persistence_diagram = ax[1].scatter(
     #    x=persistence_diagrams[start_frame][:, 0],
