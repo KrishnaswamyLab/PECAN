@@ -61,5 +61,5 @@ if __name__ == '__main__':
     for i, values in enumerate(data):
         matrix[i, :len(values)] = values
 
-    plt.matshow(matrix, aspect='equal')
+    plt.matshow(matrix, aspect='auto')
     plt.show()
