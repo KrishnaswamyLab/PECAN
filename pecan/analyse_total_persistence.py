@@ -29,6 +29,8 @@ def process_file(filename):
             for diagram in persistence_diagrams
         ])
 
+        # Ensures comparability of the values.
+        values = values / np.max(values)
         return values
 
 
