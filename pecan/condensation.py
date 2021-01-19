@@ -15,10 +15,11 @@ from yaspin.spinners import Spinners
 from data import annulus
 from data import barbell
 from data import double_annulus
-from data import moons
 from data import hyperuniform_circle
 from data import hyperuniform_ellipse
 from data import linked_hyperuniform_circles
+from data import moons
+from data import petals
 
 from ripser import Ripser
 
@@ -316,7 +317,7 @@ if __name__ == '__main__':
     logging.basicConfig(
         format='%(asctime)s.%(msecs)03d  [%(levelname)-10s] %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
-        level=logging.DEBUG
+        level=logging.INFO
     )
 
     parser = argparse.ArgumentParser()
@@ -382,7 +383,7 @@ if __name__ == '__main__':
     # does not fail gracefully.
     generator = getattr(this, args.data)
 
-    logging.debug(f'Using generator routine {generator}')
+    logging.info(f'Using generator routine {generator}')
 
     X, C = generator(
         args.num_samples,
