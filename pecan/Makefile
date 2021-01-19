@@ -5,6 +5,13 @@ annulus:
 		done \
 	done 
 
+# 'Petals' data set to check what happens if we start with large-scale
+# cycles and small-scale cycles.
+petals:
+	@for n in 16 32 64 128 256 512; do \
+		python condensation.py -n $$n -d 'petals' -o 'data/petals_n'$$n'.npz'; \
+	done 
+
 # Series of annuli of the same size but with different radii. This can
 # be used to assess how the condensation works in each case. No. points
 # is left at a manageable level.
