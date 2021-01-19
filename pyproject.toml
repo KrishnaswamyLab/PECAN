@@ -5,13 +5,13 @@ description = "PECAN: Persistent Condensation"
 authors = ["Bastian Rieck <bastian.rieck@bsse.ethz.ch>"]
 
 [tool.poetry.dependencies]
-python = ">=3.6"
+python = ">=3.7.1"
 numpy = "^1.19.4"
 scikit-learn = "^0.23.2"
 matplotlib = "^3.3.3"
 scipy = "^1.5.4"
-giotto-tda = "^0.3.1"
 yaspin = "^1.2.0"
+pandas = "^1.2.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^4.6"
