@@ -20,6 +20,9 @@ def process_file(filename):
         data = np.load(filename, allow_pickle=True)
         parsed_keys = parse_keys(data)
 
+        if 'persistence_points' not in parsed_keys:
+            return None
+
         persistence_diagrams = [
             data[key] for key, _ in parsed_keys['persistence_points']
         ]
@@ -51,11 +54,17 @@ if __name__ == '__main__':
 
         # TODO: make this smarter...
         n_points = parts[1]
-        radius = parts[2]
+
+        if len(parts) >= 3:
+            radius = parts[2]
 
         values = process_file(filename)
-        data.append(values)
 
+        # Skip files that we cannot parse for one reason or the other.
+        if values is None:
+            continue
+
+        data.append(values)
         M = max(M, len(values))
 
     matrix = np.zeros((N, M))
