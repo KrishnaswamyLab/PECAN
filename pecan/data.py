@@ -161,8 +161,6 @@ def linked_hyperuniform_circles(N, **kwargs):
     theta = np.linspace(0, 2*np.pi, N // 2, endpoint=False)
     theta = np.concatenate((theta, theta))
 
-    print(theta.shape)
-
     for i, t in enumerate(theta):
         if i < N // 2:
             X.append((np.cos(t), np.sin(t)))
@@ -170,5 +168,37 @@ def linked_hyperuniform_circles(N, **kwargs):
         # a single point.
         else:
             X.append((2 + np.cos(t), np.sin(t)))
+
+    return np.asarray(X), np.asarray(C)
+
+
+def petals(N, **kwargs):
+    """Generate petal data set."""
+    X = []  # points in respective petals
+    Y = []  # auxiliary array (points on outer circle)
+    C = []
+
+    assert N > 4, 'Require more than four data points'
+
+    # Number of 'petals' to point into the data set. This is required to
+    # ensure that the full space is used.
+    M = int(np.floor(np.sqrt(N)))
+    thetas = np.linspace(0, 2*np.pi, M, endpoint=False)
+
+    for theta in thetas:
+        Y.append(np.asarray([np.cos(theta), np.sin(theta)]))
+
+    # Radius of the smaller cycles is half of the chord distance between
+    # two 'consecutive' points on the circle.
+    r = 0.5 * np.linalg.norm(Y[0] - Y[1])
+
+    for i, x in enumerate(Y):
+        for theta in thetas:
+            X.append(np.asarray([
+                r * np.cos(theta) - x[0], r * np.sin(theta) - x[1]
+            ]))
+
+            # Indicates that this point belongs to the $i$th circle.
+            C.append(i)
 
     return np.asarray(X), np.asarray(C)
