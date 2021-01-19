@@ -1,4 +1,4 @@
-"""Analyse total persistence over time."""
+"""Analyse (total persistence over time."""
 
 import argparse
 import os
@@ -11,7 +11,12 @@ from utilities import parse_keys
 
 def total_persistence(diagram, p=2):
     """Calculate total persistence of a persistence diagram."""
-    return np.sum(np.power(np.abs(np.diff(diagram[:, 0:2])), 2))
+    return np.sum(np.power(np.abs(np.diff(diagram[:, 0:2])), p))
+
+
+def infinity_norm(diagram, p=2):
+    """Calculate infinity norm of a persistence diagram."""
+    return np.power(np.max(np.abs(np.diff(diagram[:, 0:2]))), p)
 
 
 def process_file(filename):
