@@ -16,35 +16,44 @@ def total_persistence(diagram, p=2):
 
 def infinity_norm(diagram, p=2):
     """Calculate infinity norm of a persistence diagram."""
-    return np.power(np.max(np.abs(np.diff(diagram[:, 0:2]))), p)
+    if len(diagram[:, 0:2]) != 0:
+        return np.power(np.max(np.abs(np.diff(diagram[:, 0:2]))), p)
+    else:
+        return 0.0
 
 
 def process_file(filename):
     """Process individual file and return its total persistence values."""
-    with open(filename) as f:
-        data = np.load(filename, allow_pickle=True)
-        parsed_keys = parse_keys(data)
+    data = np.load(filename, allow_pickle=True)
+    parsed_keys = parse_keys(data)
 
-        if 'persistence_points' not in parsed_keys:
-            return None
+    if 'persistence_points' not in parsed_keys:
+        return None
 
-        persistence_diagrams = [
-            data[key] for key, _ in parsed_keys['persistence_points']
-        ]
+    persistence_diagrams = [
+        data[key] for key, _ in parsed_keys['persistence_points']
+    ]
 
-        values = np.asarray([
-            total_persistence(diagram[diagram[:, 2] == 1])
-            for diagram in persistence_diagrams
-        ])
+    values = np.asarray([
+        summary_fn(diagram[diagram[:, 2] == 1])
+        for diagram in persistence_diagrams
+    ])
 
-        # Ensures comparability of the values.
-        values = values / np.max(values)
-        return values
+    # Ensures comparability of the values.
+    values = values / np.max(values)
+    return values
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('INPUT', nargs='+', help='Input file(s)')
+    parser.add_argument(
+        '-s', '--statistic',
+        default='total_persistence',
+        type=str,
+        help='Pick summary statistic to calculate. Can be either one of '
+             '[infinity_norm, total_persistence].'
+    )
 
     args = parser.parse_args()
 
@@ -52,6 +61,11 @@ if __name__ == '__main__':
     M = 0
 
     data = []
+
+    if args.statistic == 'total_persistence':
+        summary_fn = total_persistence
+    elif args.statistic == 'infinity_norm':
+        summary_fn = infinity_norm
 
     for filename in args.INPUT:
         basename = os.path.basename(filename)
