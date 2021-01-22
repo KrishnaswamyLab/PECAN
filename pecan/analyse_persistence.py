@@ -39,8 +39,11 @@ def process_file(filename):
         for diagram in persistence_diagrams
     ])
 
-    # Ensures comparability of the values.
-    values = values / np.max(values)
+    # Ensures comparability of the values, but only for total
+    # persistence calculations.
+    if summary_fn == total_persistence:
+        values = values / np.max(values)
+
     return values
 
 
