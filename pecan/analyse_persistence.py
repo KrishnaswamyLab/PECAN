@@ -95,4 +95,15 @@ if __name__ == '__main__':
         matrix[i, :len(values)] = values
 
     plt.matshow(matrix, aspect='auto')
+
+    # Annotate the heat map with the filenames. This could get smarter
+    # by sorting according to the number of points.
+    basenames = [
+        os.path.splitext(os.path.basename(filename))[0]
+        for filename in args.INPUT
+    ]
+
+    plt.gca().set_yticklabels([''] + basenames)
+    plt.xlabel('Diffusion condensation iteration')
+
     plt.show()
