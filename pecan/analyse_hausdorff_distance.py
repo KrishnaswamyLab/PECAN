@@ -19,8 +19,6 @@ def hausdorff_distance(X, Y, metric='euclidean'):
     Calculates the Hausdorff distance between two finite metric spaces,
     i.e. two finite point clouds.
     """
-    d_x_Y = 0
-
     X = np.asarray(X)
     Y = np.asarray(Y)
 
@@ -32,7 +30,7 @@ def hausdorff_distance(X, Y, metric='euclidean'):
     return max(d_XY, d_YX)
 
 
-def process_file(filename):
+def process_file(filename, args):
     """Process individual file and return Hausdorff distance curve."""
     data = np.load(filename, allow_pickle=True)
     parsed_keys = parse_keys(data)
@@ -46,9 +44,14 @@ def process_file(filename):
 
     for i, X_ in enumerate(np.rollaxis(X, axis=2)):
         if i + 1 < X.shape[2]:
-            values.append(
-                hausdorff_distance(X_, X[:, :, i + 1])
-            )
+            if args.origin:
+                values.append(
+                    hausdorff_distance(X_, X[:, :, 0])
+                )
+            else:
+                values.append(
+                    hausdorff_distance(X_, X[:, :, i + 1])
+                )
 
     return values
 
@@ -56,6 +59,13 @@ def process_file(filename):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('INPUT', nargs='+', help='Input file(s)')
+
+    parser.add_argument(
+        '-o', '--origin',
+        action='store_true',
+        help='If set, calculates distances from origin instead of using '
+             'consecutive time steps.'
+    )
 
     args = parser.parse_args()
 
@@ -71,7 +81,7 @@ if __name__ == '__main__':
         if len(parts) >= 3:
             radius = parts[2]
 
-        values = process_file(filename)
+        values = process_file(filename, args)
 
         # Skip files that we cannot parse for one reason or the other.
         if values is not None:
