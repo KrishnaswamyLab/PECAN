@@ -244,6 +244,7 @@ class DiffusionCondensation:
         # implementation works as expected.
         data = {
             self.prefix + 't_0': X.copy(),
+            'P_t_0': np.identity(n),
         }
 
         for callback in self.callbacks:
@@ -272,6 +273,9 @@ class DiffusionCondensation:
                     Q = np.sum(A, axis=1)
                     K = np.diag(1.0 / Q) @ A @ np.diag(1.0 / Q)
                     P = np.diag(1.0 / np.sum(K, axis=1)) @ K
+
+                    # Store diffusion operator
+                    data[f'P_t_{i}'] = P
 
                     for callback in self.callbacks:
                         callback(i, X, P, D)
