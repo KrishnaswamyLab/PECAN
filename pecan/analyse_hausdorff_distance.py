@@ -7,11 +7,13 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
+from sklearn.metrics.pairwise import pairwise_distances
+
 from utilities import parse_keys
 from utilities import make_tensor
 
 
-def hausdorff_distance(X, Y):
+def hausdorff_distance(X, Y, metric='euclidean'):
     """Calculate Hausdorff distance between point clouds.
 
     Calculates the Hausdorff distance between two finite metric spaces,
@@ -19,25 +21,15 @@ def hausdorff_distance(X, Y):
     """
     d_x_Y = 0
 
-    for x in X:
-        d_x_y = sys.float_info.max
-        for y in Y:
-            d = np.linalg.norm(x - y, ord=None)
-            d_x_y = min(d_x_y, d)
+    X = np.asarray(X)
+    Y = np.asarray(Y)
 
-        d_x_Y = max(d_x_Y, d_x_y)
+    distances = pairwise_distances(X=X, Y=Y)
 
-    d_y_X = 0
+    d_XY = np.max(np.min(distances, axis=1))
+    d_YX = np.max(np.min(distances, axis=0))
 
-    for y in Y:
-        d_y_x = sys.float_info.max
-        for x in X:
-            d = np.linalg.norm(x - y, ord=None)
-            d_y_x = min(d_y_x, d)
-
-        d_y_X = max(d_y_X, d_y_x)
-
-    return max(d_x_Y, d_y_X)
+    return max(d_XY, d_YX)
 
 
 def process_file(filename):
@@ -83,12 +75,16 @@ if __name__ == '__main__':
 
         # Skip files that we cannot parse for one reason or the other.
         if values is not None:
-            plt.plot(values)
+            plt.plot(
+                values,
+            )
 
     basenames = [
         os.path.splitext(os.path.basename(filename))[0]
         for filename in args.INPUT
     ]
+
+    plt.legend(basenames)
 
     plt.xlabel('Diffusion condensation iteration')
     plt.show()
