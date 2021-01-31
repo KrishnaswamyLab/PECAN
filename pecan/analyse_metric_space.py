@@ -65,12 +65,28 @@ def process_file(filename, args):
 
         diameters.append(diameter(X_))
 
-    return {
+    result = {
         'filename': [filename] * len(hausdorff_distances),
         'hausdorff_distance': hausdorff_distances,
         'diameter': diameters,
         't': np.arange(0, len(hausdorff_distances)),
     }
+
+    # Add eigenvalue information; this is slightly more tricky than the
+    # other statistics because there are as many eigenvalues as samples
+    # in the data set.
+
+    P = make_tensor(data, parsed_keys['P'])
+    E = []
+
+    for P_ in np.rollaxis(P, axis=2):
+        E.append(sorted(np.linalg.eigvalsh(P_), reverse=True)[:10])
+
+    E = np.asarray(E)
+    for i, column in enumerate(E.T[:10]):
+        result[f'eigenvalues_{i}'] = column
+
+    return result
 
 
 if __name__ == '__main__':
@@ -103,4 +119,4 @@ if __name__ == '__main__':
         data.append(row)
 
     df = pd.concat(data)
-    print(df)
+    print(df.to_csv(sep='\t'))
