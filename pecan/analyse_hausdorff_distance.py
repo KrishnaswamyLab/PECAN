@@ -13,6 +13,12 @@ from utilities import parse_keys
 from utilities import make_tensor
 
 
+def diameter(X, metric='euclidean'):
+    """Calculate diameter of a point cloud."""
+    distances = pairwise_distances(X, metric=metric)
+    return np.max(distances)
+
+
 def hausdorff_distance(X, Y, metric='euclidean'):
     """Calculate Hausdorff distance between point clouds.
 
@@ -53,7 +59,7 @@ def process_file(filename, args):
                     hausdorff_distance(X_, X[:, :, i + 1])
                 )
 
-    return values
+    return np.asarray(values)
 
 
 if __name__ == '__main__':
@@ -86,7 +92,7 @@ if __name__ == '__main__':
         # Skip files that we cannot parse for one reason or the other.
         if values is not None:
             plt.plot(
-                values,
+                values
             )
 
     basenames = [
