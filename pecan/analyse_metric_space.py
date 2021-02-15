@@ -79,16 +79,16 @@ def process_file(filename, args):
     # Add eigenvalue information; this is slightly more tricky than the
     # other statistics because there are as many eigenvalues as samples
     # in the data set.
+    if 'P' in parsed_keys:
+        P = make_tensor(data, parsed_keys['P'])
+        E = []
 
-    P = make_tensor(data, parsed_keys['P'])
-    E = []
+        for P_ in np.rollaxis(P, axis=2):
+            E.append(sorted(np.linalg.eigvalsh(P_), reverse=True)[:10])
 
-    for P_ in np.rollaxis(P, axis=2):
-        E.append(sorted(np.linalg.eigvalsh(P_), reverse=True)[:10])
-
-    E = np.asarray(E)
-    for i, column in enumerate(E.T[:10]):
-        result[f'eigenvalues_{i}'] = column
+        E = np.asarray(E)
+        for i, column in enumerate(E.T[:10]):
+            result[f'eigenvalues_{i}'] = column
 
     return result
 
