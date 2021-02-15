@@ -6,6 +6,10 @@ import os
 import pandas as pd
 import numpy as np
 
+import matplotlib.pyplot as plt
+
+import seaborn as sns
+
 from sklearn.metrics.pairwise import pairwise_distances
 
 from utilities import parse_keys
@@ -100,6 +104,12 @@ if __name__ == '__main__':
              'consecutive time steps.'
     )
 
+    parser.add_argument(
+        '-p', '--plot',
+        type=str,
+        help='If set, plots the specified column of the data set.'
+    )
+
     args = parser.parse_args()
 
     data = []
@@ -120,3 +130,13 @@ if __name__ == '__main__':
 
     df = pd.concat(data)
     print(df.to_csv(sep='\t'))
+
+    if args.plot is not None:
+        sns.lineplot(
+            data=df,
+            x='t',
+            y=args.plot,
+            hue='filename'
+        )
+
+        plt.show()
