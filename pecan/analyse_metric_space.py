@@ -144,12 +144,27 @@ if __name__ == '__main__':
     print(df.to_csv(sep='\t'))
 
     if args.plot is not None:
-        sns.lineplot(
-            data=df,
-            x='t',
-            y=args.plot,
-            hue='filename'
-        )
+
+        # Two variables, or so we hope; time for a regression plot.
+        if ',' in args.plot:
+            x, y = args.plot.split(',')
+
+            sns.lmplot(
+                data=df,
+                x=x,
+                y=y,
+                hue='filename',
+                legend=False,
+            )
+
+        # Ordinary line plot...
+        else:
+            sns.lineplot(
+                data=df,
+                x='t',
+                y=args.plot,
+                hue='filename'
+            )
 
         sns.despine()
 
