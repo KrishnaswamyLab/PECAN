@@ -72,13 +72,15 @@ def process_file(filename, args):
 
         diameters.append(diameter(X_))
 
-    factor_t = len(hausdorff_distances) - 1 if args.normalise else 1.0 
+    n = len(hausdorff_distances)
+    factor_t = n - 1 if args.normalise else 1.0
 
     result = {
-        'filename': [filename] * len(hausdorff_distances),
+        'basename': [os.path.splitext(os.path.basename(filename))[0]] * n,
+        'filename': [filename] * n,
         'hausdorff_distance': hausdorff_distances,
         'diameter': diameters,
-        't': np.arange(0, len(hausdorff_distances)) / factor_t,
+        't': np.arange(0, n) / factor_t,
     }
 
     # Add eigenvalue information; this is slightly more tricky than the
@@ -140,8 +142,16 @@ if __name__ == '__main__':
         row = pd.DataFrame.from_dict(row)
         data.append(row)
 
+    pd.set_option('precision', 4)
+
     df = pd.concat(data)
-    print(df.to_csv(sep='\t'))
+    print(
+        df.to_csv(
+            sep='\t',
+            na_rep='',
+            index=False
+        )
+    )
 
     if args.plot is not None:
 
