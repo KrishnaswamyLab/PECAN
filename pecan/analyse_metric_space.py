@@ -69,11 +69,13 @@ def process_file(filename, args):
 
         diameters.append(diameter(X_))
 
+    factor_t = len(hausdorff_distances) - 1 if args.normalise else 1.0 
+
     result = {
         'filename': [filename] * len(hausdorff_distances),
         'hausdorff_distance': hausdorff_distances,
         'diameter': diameters,
-        't': np.arange(0, len(hausdorff_distances)),
+        't': np.arange(0, len(hausdorff_distances)) / factor_t,
     }
 
     # Add eigenvalue information; this is slightly more tricky than the
@@ -102,6 +104,13 @@ if __name__ == '__main__':
         action='store_true',
         help='If set, calculates distances from origin instead of using '
              'consecutive time steps.'
+    )
+
+    parser.add_argument(
+        '-n', '--normalise',
+        action='store_true',
+        help='If set, normalises variables to [0, 1] to simplify their '
+             'subseqeuent analysis.'
     )
 
     parser.add_argument(
@@ -139,4 +148,8 @@ if __name__ == '__main__':
             hue='filename'
         )
 
+        sns.despine()
+
+        plt.legend(bbox_to_anchor=(1.01, 1), loc=2, borderaxespad=0)
+        plt.tight_layout()
         plt.show()
