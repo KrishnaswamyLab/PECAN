@@ -65,7 +65,10 @@ def process_file(filename, args):
         # Ensures that there is always a Hausdorff distance available,
         # so as not to collide with the other statistics.
         else:
-            hausdorff_distances.append(0)
+            # This is not an accident; most plotting tools will simply
+            # ignore such values, thus not misleading us when creating
+            # a visualisation.
+            hausdorff_distances.append(np.nan)
 
         diameters.append(diameter(X_))
 
