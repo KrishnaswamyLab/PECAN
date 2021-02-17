@@ -20,6 +20,7 @@ from data import hyperuniform_ellipse
 from data import linked_hyperuniform_circles
 from data import moons
 from data import petals
+from data import poisson_process
 
 from ripser import Ripser
 

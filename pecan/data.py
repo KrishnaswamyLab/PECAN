@@ -1,6 +1,7 @@
 """Data set generator methods."""
 
 import numpy as np
+import scipy.stats as stats 
 
 
 def moons(N, random_state=None, **kwargs):
@@ -202,3 +203,12 @@ def petals(N, **kwargs):
             C.append(i)
 
     return np.asarray(X), np.asarray(C)
+
+
+def poisson_process(N, **kwargs):
+    """Generate points based on a Poisson process."""
+    n = np.random.poisson(N)
+    X = np.random.rand(n, 2)
+    C = np.linspace(0, 1, n)
+
+    return X, C
