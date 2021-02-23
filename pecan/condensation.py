@@ -53,11 +53,6 @@ class CalculatePersistentHomology:
         self.persistence_pairs = dict()
         self.persistence_points = dict()
 
-        # TODO: if set, this class will require an additional
-        # Union--Find structure for rewriting generators. Not
-        # sure whether this is smart.
-        self.rewrite_generators = False
-
     def __call__(self, t, X, P, D):
         """Update function for this functor."""
         # FIXME: this limit is hard-coded for now because the analysis
@@ -85,22 +80,6 @@ class CalculatePersistentHomology:
 
         self.persistence_pairs[t] = tuples
         self.persistence_points[t] = points
-
-        # TODO: make this configurable; I am not sure whether it is
-        # the smartest choice to change the lookup of topological
-        # features here.
-        #
-        # HIC SVNT LEONES
-        if self.rewrite_generators:
-
-            tuples_ = []
-
-            for sigma, tau in tuples:
-                sigma = [uf.find(v) for v in sigma]
-                tau = [uf.find(v) for v in tau]
-                tuples_.append((sigma, tau))
-
-            tuples = np.asarray(tuples, dtype=object)
 
 
 class CalculateDiffusionHomology:
@@ -156,8 +135,6 @@ class CalculateReturnProbabilities:
         # TODO: use different matrix for the decomposition; need to
         # account for diagonal terms here?
         eigenvalues, eigenvectors = np.linalg.eigh(P)
-        eigenvalues = eigenvalues**16
-
         U = np.multiply(eigenvectors, eigenvectors)
 
         # Create a matrix that will store the return probabilities. The
