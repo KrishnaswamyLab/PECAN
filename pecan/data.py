@@ -1,7 +1,6 @@
 """Data set generator methods."""
 
 import numpy as np
-import scipy.stats as stats 
 
 
 def moons(N, random_state=None, **kwargs):
@@ -12,13 +11,16 @@ def moons(N, random_state=None, **kwargs):
 
 def barbell(N, beta=1, **kwargs):
     """Generate uniformly-sampled 2-D barbelll with colours."""
+    if kwargs.get('random_state'):
+        np.random.seed(kwargs['random_state'])
+
     X = []
     C = []
     k = 1
 
     while k <= N:
-        x = (2 + beta/2)*np.random.uniform()
-        y = (2 + beta/2)*np.random.uniform()
+        x = (2 + beta/2) * np.random.uniform()
+        y = (2 + beta/2) * np.random.uniform()
 
         X.append((x, y))
         k += 1
@@ -95,6 +97,9 @@ def annulus(N, r, R, **kwargs):
             'Inner radius must be less than or equal to '
             'outer radius'
         )
+
+    if kwargs.get('random_state'):
+        np.random.seed(kwargs['random_state'])
 
     thetas = np.random.uniform(0, 2 * np.pi, N)
 
@@ -207,6 +212,9 @@ def petals(N, **kwargs):
 
 def poisson_process(N, **kwargs):
     """Generate points based on a Poisson process."""
+    if kwargs.get('random_state'):
+        np.random.seed(kwargs['random_state'])
+
     n = np.random.poisson(N)
     X = np.random.rand(n, 2)
     C = np.linspace(0, 1, n)
