@@ -32,7 +32,6 @@ def get_limits(X):
     return x_min, x_max, y_min, y_max
 
 
-
 def make_tensor(data, parsed_keys):
     """Create a tensor from a time-varying data set.
 
@@ -123,9 +122,18 @@ def parse_keys(data):
     return parsed_keys
 
 
-def generate_output_filename(args, suffix='.npz'):
+def generate_output_filename(args, seed, suffix='.npz'):
     """Generate output filename string from CLI arguments."""
-    result = f'{args.data}_n{args.num_samples}{suffix}'
+    result = f'{args.data}_n{args.num_samples}'
+
+    if args.data == 'annulus':
+        result += f'_r{args.r}_R{args.R}'
+
+    if args.noise > 0.0:
+        result += f'_N{args.noise:.2f}'
+
+    result += f'_s{seed}'
+    result += f'{suffix}'
     return result
 
 

@@ -1,7 +1,9 @@
 """Topology-based diffusion condensation scheme."""
 
 import argparse
+import datetime
 import logging
+import os
 import sys
 
 import numpy as np
@@ -327,6 +329,15 @@ if __name__ == '__main__':
         '-o', '--output',
         default=None,
         type=str,
+        help='Output directory'
+    )
+
+    # TODO: implement effects of this
+    parser.add_argument(
+        '--noise',
+        type=float,
+        default=0.0,
+        help='Noise level to add to the data set'
     )
 
     parser.add_argument(
@@ -367,9 +378,13 @@ if __name__ == '__main__':
 
     logging.info(f'Using generator routine {generator}')
 
+    # Not the best way to seed the random generator, but this ensures
+    # that we obtain different results per run.
+    seed = int(datetime.datetime.now().timestamp())
+
     X, C = generator(
         args.num_samples,
-        random_state=42,
+        random_state=seed,
         r=args.r,
         R=args.R
     )
@@ -412,14 +427,12 @@ if __name__ == '__main__':
         persistent_homology.persistence_points.items()
     })
 
-    # Storing the full data set. This is either specified by the client
-    # or we pick an output filename.
+    # Store data set. The name of output file is generated automatically
+    # to account for conditions of the environment.
 
-    if args.output is None:
-        args.output = generate_output_filename(args)
-    elif args.output == '-':
-        args.output = sys.stdout.buffer
+    output_filename = generate_output_filename(args, seed)
+    output_filename = os.path.join(args.output, output_filename)
 
-    logging.info(f'Storing results in {args.output}')
+    logging.info(f'Storing results in {output_filename}')
 
-    np.savez(args.output, **data)
+    np.savez(output_filename, **data)
