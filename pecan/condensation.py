@@ -43,7 +43,7 @@ class CalculatePersistentHomology:
     space.
     """
 
-    def __init__(self, dimension=1):
+    def __init__(self, dimension=1, max_cardinality=512):
         """Build new instance of callback and set parameters.
 
         Parameters
@@ -51,16 +51,22 @@ class CalculatePersistentHomology:
         dimension : int
             Maximum dimension for which to calculate topological
             features.
+
+        max_cardinality : int
+            Maximum cardinality of point clouds for which topological
+            features should be calculated. Since calculating features
+            slows down other computations, larger point clouds should
+            be handled differently.
         """
         self.dimension = dimension
+        self.max_cardinality = max_cardinality
         self.persistence_pairs = dict()
         self.persistence_points = dict()
 
     def __call__(self, t, X, P, D):
         """Update function for this functor."""
-        # FIXME: this limit is hard-coded for now because the analysis
-        # of larger data sets is made more complicated.
-        if len(X) > 256:
+        # Nothing to do here if the point cloud is too large.
+        if len(X) > self.max_cardinality:
             return
 
         # Calculate topological features alongside the diffusion
