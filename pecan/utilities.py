@@ -6,6 +6,49 @@ import re
 import numpy as np
 
 
+def estimate_epsilon(X, method='knn', n_neighbours=8):
+    """Estimate suitable value for epsilon kernel parameter.
+
+    Parameters
+    ----------
+    X : np.array
+        Input array/tensor for which to estimate an epsilon.
+
+    method : str
+        Defines which method to use for the estimation procedure. Valid
+        values are 'knn' for a neighbour-based calculation, and 'fixed'
+        for an estimate based on the number of points.
+
+    n_neighbours : int
+        Only relevant for if `method='knn'`. Defines the number of
+        neighbours to use for the estimation procedure.
+
+    Returns
+    -------
+    Epsilon estimate as a float value.
+    """
+    n = len(X)
+    epsilon = np.nan
+
+    if method == 'knn':
+        from sklearn.neighbors import NearestNeighbors
+
+        knn = NearestNeighbors(
+            n_neighbors=n_neighbours,
+            metric='sqeuclidean'
+        )
+
+        knn.fit(X)
+
+        distances, _ = knn.kneighbors(X, n_neighbours, return_distance=True)
+        epsilon = np.mean(distances[:, n_neighbours - 1])
+
+    elif method == 'fixed':
+        epsilon = np.pi / n
+
+    return epsilon
+
+
 def get_limits(X):
     """Calculate plotting limits of an input tensor.
 

@@ -26,6 +26,7 @@ from data import poisson_process
 
 from ripser import Ripser
 
+from utilities import estimate_epsilon
 from utilities import generate_output_filename
 from utilities import UnionFind
 
@@ -359,19 +360,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     this = sys.modules[__name__]
 
-    if np.isnan(args.epsilon):
-        args.epsilon = np.pi / args.num_samples
-
-        logging.info(
-            f'Epsilon parameter has not been set. Calculating '
-            f'it based on {args.num_samples} points as '
-            f'{args.epsilon:.4f}.'
-        )
-
-    logging.info(f'Data set: {args.data}')
-    logging.info(f'Number of samples: {args.num_samples}')
-    logging.info(f'Epsilon: {args.epsilon:.4f}')
-
     # Search for a generator routine, as requested by the client. This
     # does not fail gracefully.
     generator = getattr(this, args.data)
@@ -388,6 +376,18 @@ if __name__ == '__main__':
         r=args.r,
         R=args.R
     )
+
+    if np.isnan(args.epsilon):
+        args.epsilon = estimate_epsilon(X)
+
+        logging.info(
+            f'Epsilon parameter has not been set. Estimating '
+            f'it as {args.epsilon:.4f}.'
+        )
+
+    logging.info(f'Data set: {args.data}')
+    logging.info(f'Number of samples: {args.num_samples}')
+    logging.info(f'Epsilon: {args.epsilon:.4f}')
 
     diffusion_homology = CalculateDiffusionHomology()
     return_probabilities = CalculateReturnProbabilities(K=8)
