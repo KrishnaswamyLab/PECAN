@@ -7,6 +7,19 @@ import re
 import numpy as np
 
 
+def resolve_token(token):
+    """Resolve token name to make it more accessible."""
+    token_to_name = {
+        'n': 'n_samples',
+        's': 'seed',
+    }
+
+    if token in token_to_name:
+        return token_to_name[token]
+    else:
+        return token
+
+
 def parse_filename(filename):
     """Parse a filename and decompose it into parts.
 
