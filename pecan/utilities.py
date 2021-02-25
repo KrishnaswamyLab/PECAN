@@ -1,9 +1,39 @@
 """Utility functions and classes."""
 
 import collections
+import os
 import re
 
 import numpy as np
+
+
+def parse_filename(filename):
+    """Parse a filename and decompose it into parts.
+
+    Parameters
+    ----------
+    filename : str
+        Filename; can either be a basename or a full path. The function
+        will strip away components that are not required.
+
+    Returns
+    -------
+    Dictionary with the keys corresponding to the detected components of
+    the path.
+    """
+    filename = os.path.splitext(os.path.basename(filename))[0]
+    tokens = filename.split('_')
+
+    result = {}
+
+    for token in tokens:
+        if len(token) >= 2:
+            # Simple parsing for now: we expect that a token is single
+            # character and the rest of its string has to be a number.
+            if token[0].isalpha() and token[1:].isnumeric():
+                result[token[0]] = token[1:]
+
+    return result
 
 
 def estimate_epsilon(X, method='knn', n_neighbours=8):
