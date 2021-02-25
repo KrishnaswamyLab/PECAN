@@ -97,7 +97,7 @@ def calculate_persistence_diagram_summaries(diagrams):
     return results
 
 
-def process_file(filename, summary_fn):
+def process_file(filename):
     """Process individual file.
 
     This function processes a single filename and returns a data frame
@@ -139,28 +139,11 @@ def process_file(filename, summary_fn):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('INPUT', nargs='+', help='Input file(s)')
-    parser.add_argument(
-        '-s', '--statistic',
-        default='total_persistence',
-        type=str,
-        help='Pick summary statistic to calculate. Can be either one of '
-             '[infinity_norm, total_persistence].'
-    )
 
     args = parser.parse_args()
 
-    N = len(args.INPUT)
-    M = 0
-
     data = []
 
-    if args.statistic == 'total_persistence':
-        summary_fn = total_persistence
-    elif args.statistic == 'infinity_norm':
-        summary_fn = infinity_norm
-
     for filename in args.INPUT:
-        basename = os.path.basename(filename)
-        parts = basename.split('_')
+        df = process_file(filename)
 
-        df = process_file(filename, summary_fn)
