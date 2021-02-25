@@ -20,7 +20,7 @@ def resolve_token(token):
         return token
 
 
-def parse_filename(filename):
+def parse_filename(filename, resolve_tokens=True):
     """Parse a filename and decompose it into parts.
 
     Parameters
@@ -28,6 +28,10 @@ def parse_filename(filename):
     filename : str
         Filename; can either be a basename or a full path. The function
         will strip away components that are not required.
+
+    resolve_tokens : bool
+        If set, resolves token abbreviations to names (if present). This
+        is on by default because it makes for nicer column names.
 
     Returns
     -------
@@ -47,7 +51,8 @@ def parse_filename(filename):
             # We replace every dot to ensure that we can parse a float
             # as well.
             if token[0].isalpha() and token[1:].replace('.', '').isnumeric():
-                result[token[0]] = token[1:]
+                name = resolve_token(token[0]) if resolve_tokens else token[0]
+                result[name] = token[1:]
             else:
                 name_tokens.append(token)
 
