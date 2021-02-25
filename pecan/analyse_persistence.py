@@ -2,11 +2,11 @@
 
 import argparse
 import itertools
-import os
 
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 from functools import partial
 
@@ -92,7 +92,7 @@ def calculate_persistence_diagram_summaries(diagrams):
                 if np.max(values) > 0:
                     values = values / np.max(values)
 
-            results[f'{name}_{dimension:d}'] = values
+            results[f'{name}_d{dimension:d}'] = values
 
     return results
 
@@ -113,7 +113,8 @@ def process_file(filename):
     # Will become a data frame later on. We just pre-fill it with some
     # information about the calculations later on.
     results = {
-        'name': [name]
+        'name': [name],
+        't': np.arange(len(parsed_keys['data']))
     }
 
     results = {**results, **tokens}
@@ -146,4 +147,19 @@ if __name__ == '__main__':
 
     for filename in args.INPUT:
         df = process_file(filename)
+        data.append(df)
 
+    df = pd.concat(data)
+    print(
+        df.to_csv(sep='\t', na_rep='', index=False)
+    )
+
+    print(df.groupby(['name', 'n_samples', 't']).mean().reset_index())
+
+    sns.lineplot(
+        x='t',
+        y='total_persistence_p1_d1',
+        hue='n_samples',
+        data=df.groupby(['name', 'n_samples', 't']).mean().reset_index()
+    )
+    plt.show()
