@@ -1,17 +1,30 @@
-"""Analyse (total persistence over time."""
+"""Analyse (total) persistence over time."""
 
 import argparse
+import itertools
 import os
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
+from functools import partial
+
 from utilities import parse_keys
+from utilities import parse_filename
 
 
 def total_persistence(diagram, p=2):
     """Calculate total persistence of a persistence diagram."""
     return np.sum(np.power(np.abs(np.diff(diagram[:, 0:2])), p))
+
+
+def p_norm(diagram, p=2):
+    """Calculate $p$-norm of a persistence diagram (per dimension)."""
+    return np.power(
+            np.power(np.abs(np.diff(diagram[:, 0:2][..., -1])), p).sum(),
+            1 / p
+    )
 
 
 def infinity_norm(diagram, p=2):
@@ -22,29 +35,105 @@ def infinity_norm(diagram, p=2):
         return 0.0
 
 
-def process_file(filename):
-    """Process individual file and return its total persistence values."""
+def calculate_persistence_diagram_summaries(diagrams):
+    """Calculate set of persistence diagram summaries and return them.
+
+    Parameters
+    ----------
+    diagrams : list
+        List of persistence diagrams in tuple format, i.e. a list of
+        arrays of shape `(m, 3)`, where `m` is the number of points,
+        and each point is described by a triple `(c, d, dim)`.
+
+    Returns
+    -------
+    Dictionary with persistence-based summaries; the key is the name of
+    the summary statistic, with a potential `_d` suffix to indicate the
+    dimension. The values are provided in the order of the input data.
+    """
+    # Collate *all* dimensions of all diagrams, ensuring that we can
+    # always calculate them appropriately.
+    dimensions = np.unique(
+        list(
+            itertools.chain(
+                *[
+                    np.unique(diagram[:, 2]).tolist()
+                    for diagram in diagrams
+                ]
+            )
+        )
+    )
+
+    summary_functions = {
+        '2_norm': partial(p_norm, p=2),
+        '1_norm': partial(p_norm, p=1),
+        'infinity_norm_p2': partial(infinity_norm, p=2),
+        'infinity_norm_p1': partial(infinity_norm, p=1),
+        'total_persistence_p1': partial(total_persistence, p=1),
+        'total_persistence_p1_normalized': partial(total_persistence, p=1),
+        'total_persistence_p2': partial(total_persistence, p=2),
+        'total_persistence_p2_normalized': partial(total_persistence, p=2),
+    }
+
+    # Will be filled with the results; to be merged with a larger data
+    # frame later on.
+    results = {}
+
+    for dimension in dimensions:
+        for name, fn in summary_functions.items():
+            values = np.asarray([
+                fn(diagram[diagram[:, 2] == dimension])
+                for diagram in diagrams
+            ])
+
+            # Normalize if desired by the user. This changes the
+            # interpretation slightly.
+            if 'normalized' in name:
+                if np.max(values) > 0:
+                    values = values / np.max(values)
+
+            results[f'{name}_{dimension:d}'] = values
+
+    return results
+
+
+def process_file(filename, summary_fn):
+    """Process individual file.
+
+    This function processes a single filename and returns a data frame
+    with information about the file. The data frame created here might
+    not have the same number of columns available for each file, as an
+    individual file might contain different kinds of information.
+    """
     data = np.load(filename, allow_pickle=True)
     parsed_keys = parse_keys(data)
 
-    if 'persistence_points' not in parsed_keys:
-        return None
+    name, tokens = parse_filename(filename)
 
-    persistence_diagrams = [
-        data[key] for key, _ in parsed_keys['persistence_points']
-    ]
+    # Will become a data frame later on. We just pre-fill it with some
+    # information about the calculations later on.
+    results = {
+        'name': [name]
+    }
 
-    values = np.asarray([
-        summary_fn(diagram[diagram[:, 2] == 1])
-        for diagram in persistence_diagrams
-    ])
+    results = {**results, **tokens}
 
-    # Ensures comparability of the values, but only for total
-    # persistence calculations.
-    if summary_fn == total_persistence:
-        values = values / np.max(values)
+    if 'persistence_points' in parsed_keys:
+        persistence_diagrams = [
+            data[key] for key, _ in parsed_keys['persistence_points']
+        ]
 
-    return values
+        summaries = calculate_persistence_diagram_summaries(
+            persistence_diagrams
+        )
+
+        results = {**results, **summaries}
+
+    df = pd.DataFrame({k: pd.Series(v) for k, v in results.items()})
+    cols = ['name'] + list(tokens.keys())
+    df[cols] = df[cols].ffill()
+
+    return df
 
 
 if __name__ == '__main__':
@@ -74,36 +163,4 @@ if __name__ == '__main__':
         basename = os.path.basename(filename)
         parts = basename.split('_')
 
-        # TODO: make this smarter...
-        n_points = parts[1]
-
-        if len(parts) >= 3:
-            radius = parts[2]
-
-        values = process_file(filename)
-
-        # Skip files that we cannot parse for one reason or the other.
-        if values is None:
-            continue
-
-        data.append(values)
-        M = max(M, len(values))
-
-    matrix = np.zeros((N, M))
-
-    for i, values in enumerate(data):
-        matrix[i, :len(values)] = values
-
-    plt.matshow(matrix, aspect='auto')
-
-    # Annotate the heat map with the filenames. This could get smarter
-    # by sorting according to the number of points.
-    basenames = [
-        os.path.splitext(os.path.basename(filename))[0]
-        for filename in args.INPUT
-    ]
-
-    plt.gca().set_yticklabels([''] + basenames)
-    plt.xlabel('Diffusion condensation iteration')
-
-    plt.show()
+        df = process_file(filename, summary_fn)
