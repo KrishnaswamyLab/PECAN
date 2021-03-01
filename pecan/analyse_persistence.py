@@ -150,16 +150,28 @@ if __name__ == '__main__':
         data.append(df)
 
     df = pd.concat(data)
+    df['n_samples'] = pd.to_numeric(df['n_samples'])
+
     print(
         df.to_csv(sep='\t', na_rep='', index=False)
     )
 
-    print(df.groupby(['name', 'n_samples', 't']).mean().reset_index())
+    print(df.groupby(['name', 'n_samples', 't']).agg([np.mean, np.std]).reset_index())
 
-    sns.lineplot(
-        x='t',
-        y='total_persistence_p1_d1',
-        hue='n_samples',
-        data=df.groupby(['name', 'n_samples', 't']).mean().reset_index()
-    )
+    #df_ = df.groupby(['name', 'n_samples', 't']).agg([np.mean, np.std]).reset_index()
+    #df_.columns = ['_'.join(col) for col in df_.columns]
+    #print(df_)
+
+    #sns.lineplot(
+    #    x='t',
+    #    y='total_persistence_p1_d1',
+    #    hue='n_samples',
+    #    #data=df.groupby(['name', 'n_samples', 't']).mean().reset_index()
+    #    data=df,
+    #    estimator='mean',
+    #)
+
+    g = sns.FacetGrid(df, col='n_samples', hue='n_samples')
+    g.map(sns.lineplot, 't', 'total_persistence_p1_d1', ci='sd')
+
     plt.show()
