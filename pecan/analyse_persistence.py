@@ -153,6 +153,20 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('INPUT', nargs='+', help='Input file(s)')
 
+    parser.add_argument(
+        '-s', '--statistic',
+        default='infinity_norm_p2',
+        type=str,
+        help='Statistic to plot',
+    )
+
+    parser.add_argument(
+        '-d', '--dimension',
+        default=1,
+        type=int,
+        help='Dimension of topological features to plot'
+    )
+
     args = parser.parse_args()
 
     data = []
@@ -168,18 +182,10 @@ if __name__ == '__main__':
         df.to_csv(sep='\t', na_rep='', index=False)
     )
 
-    print(df.groupby(['name', 'n_samples', 't']).agg([np.mean, np.std]).reset_index())
-
-    #df_ = df.groupby(['name', 'n_samples', 't']).agg([np.mean, np.std]).reset_index()
-    #df_.columns = ['_'.join(col) for col in df_.columns]
-    #print(df_)
-
     sns.lineplot(
         x='t',
-        y='total_persistence_p1_d1',
-        #y='infinity_norm_p1_d1',
+        y=f'{args.statistic}_d{args.dimension}',
         hue='n_samples',
-        #data=df.groupby(['name', 'n_samples', 't']).mean().reset_index()
         data=df,
         estimator='mean',
         ci='sd',
