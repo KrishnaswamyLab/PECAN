@@ -16,13 +16,13 @@ from utilities import parse_filename
 
 def total_persistence(diagram, p=2):
     """Calculate total persistence of a persistence diagram."""
-    return np.sum(np.power(np.abs(np.diff(diagram[:, 0:2])), p))
+    return np.power(np.abs(np.diff(diagram[:, 0:2])), p).sum()
 
 
 def p_norm(diagram, p=2):
     """Calculate $p$-norm of a persistence diagram (per dimension)."""
     return np.power(
-            np.power(np.abs(np.diff(diagram[:, 0:2][..., -1])), p).sum(),
+            np.power(np.abs(np.diff(diagram[:, 0:2])), p).sum(),
             1 / p
     )
 
