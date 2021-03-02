@@ -137,6 +137,18 @@ def process_file(filename):
     return df
 
 
+def aggregate(df):
+    """Aggregate a given data frame in terms of mean/std."""
+    df = df.groupby(['name', 'n_samples', 't']).agg(
+        [np.mean, np.std]).reset_index()
+
+    # Create single columns from the multi-index columns in the data
+    # set, resulting in columns of the form `name_mean` for instance.
+    df.columns = ['_'.join(col) for col in df.columns]
+
+    return df
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('INPUT', nargs='+', help='Input file(s)')
@@ -162,16 +174,16 @@ if __name__ == '__main__':
     #df_.columns = ['_'.join(col) for col in df_.columns]
     #print(df_)
 
-    #sns.lineplot(
-    #    x='t',
-    #    y='total_persistence_p1_d1',
-    #    hue='n_samples',
-    #    #data=df.groupby(['name', 'n_samples', 't']).mean().reset_index()
-    #    data=df,
-    #    estimator='mean',
-    #)
-
-    g = sns.FacetGrid(df, col='n_samples', hue='n_samples')
-    g.map(sns.lineplot, 't', 'total_persistence_p1_d1', ci='sd')
+    sns.lineplot(
+        x='t',
+        y='total_persistence_p1_d1',
+        #y='infinity_norm_p1_d1',
+        hue='n_samples',
+        #data=df.groupby(['name', 'n_samples', 't']).mean().reset_index()
+        data=df,
+        estimator='mean',
+        ci='sd',
+        palette='husl',
+    )
 
     plt.show()
