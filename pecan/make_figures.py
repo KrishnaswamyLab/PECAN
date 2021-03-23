@@ -84,7 +84,11 @@ if __name__ == '__main__':
 
     n_plots = 1 + args.barcode + args.diagram
 
-    fig, ax = plt.subplots(ncols=n_plots, figsize=(n_plots * 3, 3), squeeze=True)
+    fig, ax = plt.subplots(
+        ncols=n_plots,
+        figsize=(n_plots * 3, 3),
+        squeeze=True,
+    )
 
     # Simplify treatment of multiple axes below.
     if n_plots == 1:
@@ -163,6 +167,10 @@ if __name__ == '__main__':
         )
 
         ax[cur_axis].set_aspect(1.0)
+
+    # Ensures that we can see the label. Can't wait to do this with TikZ
+    # instead...
+    fig.subplots_adjust(bottom=.5)
 
     plt.tight_layout()
 
