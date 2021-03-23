@@ -5,13 +5,11 @@ dropped into a preprint.
 """
 
 import argparse
-import os
 
 import matplotlib
 import matplotlib.collections
 import matplotlib.colors
 import matplotlib.lines
-import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 
 import numpy as np
@@ -19,22 +17,6 @@ import numpy as np
 from utilities import parse_keys
 from utilities import make_tensor
 from utilities import get_limits
-
-
-def total_persistence(diagram, p=2):
-    """Calculate total persistence of a persistence diagram."""
-    return np.sum(np.power(np.abs(np.diff(diagram[:, 0:2])), 2))
-
-
-def update(i):
-    """Update callback for the animation."""
-    # Update time-varying point cloud, similarly to the other plotting
-    # scripts.
-    scatter.set_offsets(X[..., i])
-    ax[0].set_title(f'Data (2D) @ $t={i}$')
-
-    #persistence_diagram.set_offsets(persistence_diagrams[i][:, 0:2])
-    #ax[1].set_title(f'Persistence diagram @ $t={i}$')
 
 
 if __name__ == '__main__':
@@ -72,14 +54,17 @@ if __name__ == '__main__':
         help='If set, shows diagram'
     )
 
+    parser.add_argument(
+        '-o', '--output',
+        help='Specifies an optional output file'
+    )
+
     args = parser.parse_args()
 
     # Check whether all keys are available. We require persistence
     # points, persistence pairs, and obviously a data set.
     data = np.load(args.INPUT, allow_pickle=True)
     parsed_keys = parse_keys(data)
-
-    print(parsed_keys)
 
     assert 'data' in parsed_keys, 'Require "data" key'
 
@@ -123,7 +108,26 @@ if __name__ == '__main__':
     scatter = ax[cur_axis].scatter(X[:, 0, args.frame], X[:, 1, args.frame])
 
     if args.barcode:
-        pass
+        cur_axis += 1
+
+        # List of persistence pairs of the form (creation, destruction).
+        # They only pertain to diffusion homology.
+        pp = data['diffusion_homology_persistence_pairs']
+
+        ax[cur_axis].set_title('Ambient diffusion homology')
+        ax[cur_axis].set_xlim(-0.01, np.max(pp[:, 1]) + 0.01)
+        ax[cur_axis].set_ylim(-0.01, len(pp[:, 1]) + 0.01)
+
+        pp = [destruction for _, destruction in pp]
+
+        segments = [
+            [(0, i), (destruction, i)] for i, destruction in enumerate(pp)
+        ]
+
+        barcode = matplotlib.collections.LineCollection(segments=segments)
+        ax[cur_axis].add_collection(barcode)
+        ax[cur_axis].set_xlabel('$t$')
+        ax[cur_axis].set_aspect(1.50)
 
     if args.diagram:
         cur_axis += 1
@@ -139,8 +143,11 @@ if __name__ == '__main__':
         y_min = np.min(persistence_diagram[:, 1])
         y_max = np.max(persistence_diagram[:, 1])
 
-        ax[cur_axis].set_xlim(x_min - 0.01, x_max + 0.01)
-        ax[cur_axis].set_ylim(y_min - 0.01, y_max + 0.01)
+        min_ = min(x_min, y_min)
+        max_ = max(x_max, y_max)
+
+        ax[cur_axis].set_xlim(min_ - 0.01, max_ + 0.01)
+        ax[cur_axis].set_ylim(min_ - 0.01, max_ + 0.01)
         ax[cur_axis].axline((-0.1, -0.1), slope=1.0, c='k')
         ax[cur_axis].set_title(f'Persistence diagram @ $t={args.frame}$')
 
@@ -155,5 +162,11 @@ if __name__ == '__main__':
             cmap=cm,
         )
 
+        ax[cur_axis].set_aspect(1.0)
+
     plt.tight_layout()
-    plt.show()
+
+    if args.output is not None:
+        plt.savefig(args.output, dpi=300)
+    else:
+        plt.show()
