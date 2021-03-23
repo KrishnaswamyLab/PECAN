@@ -97,49 +97,63 @@ if __name__ == '__main__':
     X = make_tensor(data, parsed_keys['data'])
     T = X.shape[-1]
 
-    fig, ax = plt.subplots(ncols=2, figsize=(3, 3))
+    n_plots = 1 + args.barcode + args.diagram
 
-    ax = [ax]
-    ax.set_aspect(args.aspect)
+    fig, ax = plt.subplots(ncols=n_plots, figsize=(n_plots * 3, 3), squeeze=True)
+
+    # Simplify treatment of multiple axes below.
+    if n_plots == 1:
+        ax = [ax]
+
+    for axis in ax:
+        axis.set_aspect(args.aspect)
+
+    # Will ensure that the right axis is always used for plotting. I am
+    # sure this can be solved more elegantly.
+    cur_axis = 0
 
     x_min, x_max, y_min, y_max = get_limits(X)
 
-    ax[0].set_title(f'Data (2D) @ $t={start_frame}$')
-    ax[0].set_xlim((x_min, x_max))
-    ax[0].set_ylim((y_min, y_max))
+    ax[cur_axis].set_title(f'Data (2D) @ $t={args.frame}$')
+    ax[cur_axis].set_xlim((x_min, x_max))
+    ax[cur_axis].set_ylim((y_min, y_max))
 
     # Render first frame (or desired frame) before (potentially)
     # starting the animation.
-    scatter = ax[0].scatter(X[:, 0, start_frame], X[:, 1, start_frame])
+    scatter = ax[cur_axis].scatter(X[:, 0, args.frame], X[:, 1, args.frame])
 
-    # Show persistence points in all dimensions (collated). To this end,
-    # collect all the diagrams in one vector.
+    if args.barcode:
+        pass
 
-   # persistence_diagrams = [
-   #     data[key] for key, _ in parsed_keys['persistence_points']
-   # ]
+    if args.diagram:
+        cur_axis += 1
 
-   # y_max = 0.0
-   # for pd in persistence_diagrams:
-   #     y_max = max(y_max, np.max(pd[:, 1]))
+        persistence_diagrams = [
+            data[key] for key, _ in parsed_keys['persistence_points']
+        ]
 
-    # TODO: this assumes that we are always visualising zero-dimensional
-    # persistent homology. If this is *not* the case, the limits need to
-    # be updated.
-    #ax[1].set_xlim(-0.1, y_max * 1.05)
-    #ax[1].set_ylim(-0.1, y_max * 1.05)
-    #ax[1].axline((-0.1, -0.1), slope=1.0, c='k')
-    #ax[1].set_title(f'Persistence diagram @ $t={start_frame}$')
+        persistence_diagram = persistence_diagrams[args.frame]
 
-    cm = matplotlib.colors.ListedColormap(['r', 'b'])
+        x_min = np.min(persistence_diagram[:, 0])
+        x_max = np.max(persistence_diagram[:, 0])
+        y_min = np.min(persistence_diagram[:, 1])
+        y_max = np.max(persistence_diagram[:, 1])
 
-    # Show the diagram of the initial point cloud
-    #persistence_diagram = ax[1].scatter(
-    #    x=persistence_diagrams[start_frame][:, 0],
-    #    y=persistence_diagrams[start_frame][:, 1],
-    #    c=persistence_diagrams[start_frame][:, 2],
-    #    cmap=cm,
-    #)
+        ax[cur_axis].set_xlim(x_min - 0.01, x_max + 0.01)
+        ax[cur_axis].set_ylim(y_min - 0.01, y_max + 0.01)
+        ax[cur_axis].axline((-0.1, -0.1), slope=1.0, c='k')
+        ax[cur_axis].set_title(f'Persistence diagram @ $t={args.frame}$')
+
+        # Show the diagram of the initial point cloud
+
+        cm = matplotlib.colors.ListedColormap(['r', 'b'])
+
+        persistence_diagram = ax[cur_axis].scatter(
+            x=persistence_diagrams[args.frame][:, 0],
+            y=persistence_diagrams[args.frame][:, 1],
+            c=persistence_diagrams[args.frame][:, 2],
+            cmap=cm,
+        )
 
     plt.tight_layout()
     plt.show()
