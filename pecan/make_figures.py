@@ -1,4 +1,8 @@
-"""Create figures for preprint/proposal etc."""
+"""Create figures for preprint/proposal etc.
+
+At present, this script only creates some PNG files that can be directly
+dropped into a preprint.
+"""
 
 import argparse
 import os
@@ -42,20 +46,30 @@ if __name__ == '__main__':
 
     parser.add_argument(
         '-f', '--frame',
-        default=None,
+        default=0,
         type=int,
-        help='Specifies frame to show (instead of animation)'
+        help='Specifies frame',
     )
 
     parser.add_argument(
-        '-i', '--interval', default=200, type=int,
-        help='Update interval'
+        '-a', '--aspect',
+        type=float,
+        default=1.0,
+        help='Aspect ratio',
     )
 
     parser.add_argument(
-        '-r', '--repeat',
+        '-b', '--barcode',
+        default=False,
         action='store_true',
-        help='Indicates whether animation should loop'
+        help='If set, shows barcode'
+    )
+
+    parser.add_argument(
+        '-d', '--diagram',
+        default=False,
+        action='store_true',
+        help='If set, shows diagram'
     )
 
     args = parser.parse_args()
@@ -65,30 +79,28 @@ if __name__ == '__main__':
     data = np.load(args.INPUT, allow_pickle=True)
     parsed_keys = parse_keys(data)
 
+    print(parsed_keys)
+
     assert 'data' in parsed_keys, 'Require "data" key'
 
-    #assert 'persistence_points' in parsed_keys, \
-    #    'Require "persistence_points" key'
+    if args.barcode:
+        assert 'diffusion_homology_persistence_pairs' in parsed_keys, \
+            'Require "diffusion_homology_persistence_pairs" key'
 
-    #assert 'persistence_pairs' in parsed_keys, \
-    #    'Require "persistence_pairs" key'
+    if args.diagram:
+        assert 'persistence_points' in parsed_keys, \
+            'Require "persistence_points" key'
 
-    # Check whether an animation is desired or not. If not, we just show
-    # a single frame and do not start the animation later on.
-    if args.frame is not None:
-        start_frame = args.frame
-    else:
-        start_frame = 0
-
-    # Prepare point cloud visualisation
+    # Prepare point cloud visualisation. This corresponds to showing the
+    # data at a certain point of the diffusion condensation process.
 
     X = make_tensor(data, parsed_keys['data'])
     T = X.shape[-1]
 
-    fig, ax = plt.subplots(ncols=1, figsize=(3, 3))
-    #fig.suptitle(os.path.splitext(os.path.basename(args.INPUT))[0])
+    fig, ax = plt.subplots(ncols=2, figsize=(3, 3))
 
     ax = [ax]
+    ax.set_aspect(args.aspect)
 
     x_min, x_max, y_min, y_max = get_limits(X)
 
@@ -128,20 +140,6 @@ if __name__ == '__main__':
     #    c=persistence_diagrams[start_frame][:, 2],
     #    cmap=cm,
     #)
-
-    # If a start frame has been selected by the user, we should not
-    # start an animation.
-    if args.frame is None:
-        ani = animation.FuncAnimation(
-            fig,
-            update,
-            frames=T,
-            repeat=args.repeat,
-            interval=args.interval,
-        )
-
-        # TODO: make configurable
-        ani.save('/tmp/Condensation_%03d.png', writer='imagemagick')
 
     plt.tight_layout()
     plt.show()
