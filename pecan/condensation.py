@@ -181,7 +181,7 @@ def get_kernel_fn(kernel):
     elif kernel == 'constant':
         def kernel_fn(X, epsilon):
             n = X.shape[0]
-            K = np.full((n, n), epsilon)
+            K = np.full((n, n), 1.0 / epsilon)
             return K
         return kernel_fn
 
@@ -296,7 +296,12 @@ if __name__ == '__main__':
         CalculatePersistentHomology()
     ]
 
-    diffusion_condensation = DiffusionCondensation(callbacks=callbacks)
+    kernel_fn = get_kernel_fn(args.kernel)
+
+    diffusion_condensation = DiffusionCondensation(
+        callbacks=callbacks,
+        kernel_fn=kernel_fn
+    )
     data = diffusion_condensation(X, args.epsilon)
 
     # Store data set. The name of output file is generated automatically
