@@ -17,15 +17,7 @@ from yaspin.spinners import Spinners
 from callbacks import CalculateDiffusionHomology
 from callbacks import CalculatePersistentHomology
 
-from data import annulus
-from data import barbell
-from data import double_annulus
-from data import hyperuniform_circle
-from data import hyperuniform_ellipse
-from data import linked_hyperuniform_circles
-from data import moons
-from data import petals
-from data import poisson_process
+import data
 
 from utilities import estimate_epsilon
 from utilities import generate_output_filename
@@ -235,7 +227,7 @@ if __name__ == '__main__':
 
     # Search for a generator routine, as requested by the client. This
     # does not fail gracefully.
-    generator = getattr(this, args.data)
+    generator = getattr(data, args.data)
 
     logging.info(f'Using generator routine {generator}')
 
