@@ -9,6 +9,7 @@ import sys
 import numpy as np
 
 from sklearn.metrics.pairwise import euclidean_distances
+from sklearn.metrics.pairwise import laplacian_kernel
 from sklearn.metrics.pairwise import rbf_kernel
 
 from yaspin import yaspin
@@ -35,6 +36,7 @@ class DiffusionCondensation:
         self,
         callbacks=[],
         prefix='data_',
+        kernel_fn=None,
     ):
         """Initialise new instance and register callbacks.
 
@@ -55,13 +57,20 @@ class DiffusionCondensation:
             Indicates the prefix to be used for storing individual time
             steps. If set to `X`, the first key of the diffusion
             condensation process will be called `X_t_0`.
+
+        kernel_fn : callable (optional)
+            If set, overrides kernel functions to be used for the
+            affinity matrix calculation. The function needs to be
+            able to calculate pairwise affinities for a matrix. A
+            keyword argument `epsilon` must be supported, but can
+            also be ignored within the function.
         """
         self.callbacks = callbacks
         self.prefix = prefix
+        self.kernel_fn = kernel_fn
 
-        # TODO: this could be made configurable, but at present, I am
-        # relying on a precise signature of this function.
-        self.kernel_fn = self.make_affinity_matrix
+        if self.kernel_fn is None:
+            self.kernel_fn = self.make_affinity_matrix
 
     def __call__(self, X, epsilon):
         """Run condensation process for a given data set."""
@@ -160,6 +169,26 @@ class DiffusionCondensation:
         return rbf_kernel(X, gamma=1.0 / epsilon)
 
 
+def get_kernel_fn(kernel):
+    """Return kernel function as callable."""
+    if kernel == 'gaussian':
+        # Default kernel; handled by the functor
+        return None
+    elif kernel == 'laplacian':
+        def kernel_fn(X, epsilon):
+            return laplacian_kernel(X, gamma=1.0 / epsilon)
+        return kernel_fn
+    elif kernel == 'constant':
+        def kernel_fn(X, epsilon):
+            n = X.shape[0]
+            K = np.full((n, n), epsilon)
+            return K
+        return kernel_fn
+
+    # Fall back to default kernel.
+    return None
+
+
 if __name__ == '__main__':
 
     # Set up logging to obtain some nice output information, runtime,
@@ -189,6 +218,14 @@ if __name__ == '__main__':
         # easily, depending on the number of points etc.
         default=np.nan,
         type=float,
+    )
+
+    parser.add_argument(
+        '-k', '--kernel',
+        default='gaussian',
+        type=str,
+        choices=['gaussian', 'laplacian', 'constant'],
+        help='Sets kernel to use for diffusion condensation process.'
     )
 
     parser.add_argument(
