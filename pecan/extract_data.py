@@ -32,14 +32,15 @@ if __name__ == '__main__':
     X = make_tensor(data, parsed_keys['data'])
     T = X.shape[-1]
 
-    np.savetxt(
-        '/tmp/X.txt',
-        X[:, :, 0],
-        fmt='%.8f',
-        delimiter=',',
-        header='x,y',
-        comments=''
-    )
+    for t in range(T):
+        np.savetxt(
+            f'/tmp/Double_annulus_{t:02d}.txt',
+            X[:, :, t],
+            fmt='%.8f',
+            delimiter=',',
+            header='x,y',
+            comments=''
+        )
 
     raise 'heck'
 
