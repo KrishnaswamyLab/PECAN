@@ -32,8 +32,14 @@ if __name__ == '__main__':
     X = make_tensor(data, parsed_keys['data'])
     T = X.shape[-1]
 
-    # Render first time step before the animation starts.
-    scatter = ax[0].scatter(X[:, 0, 0], X[:, 1, 0])
+    np.savetxt(
+        '/tmp/X.txt',
+        X[:, :, 0],
+        fmt='%.8f',
+        delimiter=',',
+        header='x,y',
+        comments=''
+    )
 
     raise 'heck'
 
