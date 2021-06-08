@@ -3,10 +3,16 @@
 import numpy as np
 
 
-def moons(N, random_state=None, **kwargs):
+def moons(N, **kwargs):
     """Generate moons data set with labels."""
     from sklearn.datasets import make_moons
     return make_moons(N, random_state=kwargs['random_state'])
+
+
+def nested_circles(N, **kwargs):
+    """Generate nested circles with labels."""
+    from sklearn.datasets import make_circles
+    return make_circles(N, random_state=kwargs['random_state'])
 
 
 def barbell(N, beta=1, **kwargs):
