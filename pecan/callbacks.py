@@ -147,17 +147,25 @@ class CalculateDiffusionHomology(Callback):
     we filtrate over time steps.
     """
 
-    def __init__(self):
-        """Create new instance."""
+    def __init__(self, threshold=1e-3):
+        """Create new instance.
+
+        Parameters
+        ----------
+        threshold : float
+            Specifies a threshold for the merges. If a pair of points is
+            closer than this threshold, it will be merged.
+        """
         self.persistence_pairs = []
         self.uf = None
+        self.threshold = threshold
 
     def __call__(self, t, X, P, D):
         """Update function for this functor."""
         if not self.uf:
             self.uf = UnionFind(X.shape[0])
 
-        for i1, i2 in np.transpose(np.nonzero(D < 1e-3)):
+        for i1, i2 in np.transpose(np.nonzero(D < self.threshold)):
             if i1 > i2 and self.uf.find(i1) != self.uf.find(i2):
                 self.uf.merge(i1, i2)
 
