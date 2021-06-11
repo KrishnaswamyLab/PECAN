@@ -190,6 +190,11 @@ class CalculateReturnProbabilities(Callback):
 
     This callback calculates the return probabilities for random walks
     up to a pre-defined length.
+
+    Notes
+    -----
+    This callback is not fully tested. Its output should not be relied
+    on in practice.
     """
 
     def __init__(self, K):
