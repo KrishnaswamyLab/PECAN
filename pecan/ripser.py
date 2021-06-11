@@ -14,8 +14,9 @@ import numpy as np
 # to be nice to users and warn them here.
 try:
     subprocess.run(
-        ['ripser1'],
-        stdout=subprocess.PIPE
+        ['ripser', '--help'],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL
     )
 except FileNotFoundError:
     warnings.warn(
