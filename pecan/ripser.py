@@ -4,8 +4,25 @@ import itertools
 import os
 import tempfile
 import subprocess
+import warnings
 
 import numpy as np
+
+
+# Let's see whether we can find `ripser`. Notice that this does
+# not guarantee that subsequent calls work as well, but we want
+# to be nice to users and warn them here.
+try:
+    subprocess.run(
+        ['ripser1'],
+        stdout=subprocess.PIPE
+    )
+except FileNotFoundError:
+    warnings.warn(
+        'The execution of `ripser` failed. Persistent homology '
+        'features will be unavailable. Please install `ripser` '
+        'on your system.'
+    )
 
 
 class Ripser:
