@@ -110,6 +110,12 @@ class CalculatePersistentHomology(Callback):
         # set of persistence points, i.e. coordinates/distances.
         tuples, points = Ripser(dimension=self.dimension)(D)
 
+        # Skip processing if we are unable to get some topological
+        # features. This could be caused, for instance, by missing
+        # `ripser` binaries.
+        if tuples is None or points is None:
+            return
+
         # Add additional information about the dimension of each
         # topological feature.
         dimension = np.asarray([
