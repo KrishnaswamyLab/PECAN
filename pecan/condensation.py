@@ -245,6 +245,14 @@ if __name__ == '__main__':
     )
 
     parser.add_argument(
+        '-b', '--beta',
+        default=1.0,
+        type=float,
+        help='Beta parameter for distributions. Will be used whenever '
+             'it is appropriate.'
+    )
+
+    parser.add_argument(
         '-r',
         default=0.5,
         type=float,
@@ -277,7 +285,8 @@ if __name__ == '__main__':
         args.num_samples,
         random_state=seed,
         r=args.r,
-        R=args.R
+        R=args.R,
+        beta=args.beta,
     )
 
     if np.isnan(args.epsilon):
