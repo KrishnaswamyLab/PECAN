@@ -4,8 +4,26 @@ import itertools
 import os
 import tempfile
 import subprocess
+import warnings
 
 import numpy as np
+
+
+# Let's see whether we can find `ripser`. Notice that this does
+# not guarantee that subsequent calls work as well, but we want
+# to be nice to users and warn them here.
+try:
+    subprocess.run(
+        ['ripser', '--help'],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL
+    )
+except FileNotFoundError:
+    warnings.warn(
+        'The execution of `ripser` failed. Persistent homology '
+        'features will be unavailable. Please install `ripser` '
+        'on your system.'
+    )
 
 
 class Ripser:
@@ -16,16 +34,39 @@ class Ripser:
         self.dimension = dimension
 
     def __call__(self, D):
-        """Call `ripser` on a provided distance matrix."""
+        """Call `ripser` on a provided distance matrix.
+
+        This function uses an existing `ripser` installation to handle
+        the calculation of topological features. If no `ripser` binary
+        can be found, the function will fail gracefully.
+
+        Parameters
+        ----------
+        D : `np.array`
+            Distance matrix of some metric space whose persistent
+            homology should be calculated.
+
+        Returns
+        -------
+        Tuple consisting of the persistence pairs (i.e. pairs of indices
+        corresponding to positive and negative simplices) and points for
+        the persistence diagrams (i.e. pairs of distances).
+
+        If `ripser` fails for some reason, the function will just return
+        `None, None`. This special value needs to be handled downstream.
+        """
         fd, path = tempfile.mkstemp()
         try:
             with os.fdopen(fd, 'w') as tmp:
                 np.savetxt(tmp, D)
 
-            result = subprocess.run(
-                ['ripser', '--dim', str(self.dimension), path],
-                stdout=subprocess.PIPE
-            )
+            try:
+                result = subprocess.run(
+                    ['ripser', '--dim', str(self.dimension), path],
+                    stdout=subprocess.PIPE
+                )
+            except FileNotFoundError:
+                return None, None
 
         finally:
             os.remove(path)

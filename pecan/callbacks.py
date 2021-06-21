@@ -110,6 +110,12 @@ class CalculatePersistentHomology(Callback):
         # set of persistence points, i.e. coordinates/distances.
         tuples, points = Ripser(dimension=self.dimension)(D)
 
+        # Skip processing if we are unable to get some topological
+        # features. This could be caused, for instance, by missing
+        # `ripser` binaries.
+        if tuples is None or points is None:
+            return
+
         # Add additional information about the dimension of each
         # topological feature.
         dimension = np.asarray([
@@ -147,17 +153,25 @@ class CalculateDiffusionHomology(Callback):
     we filtrate over time steps.
     """
 
-    def __init__(self):
-        """Create new instance."""
+    def __init__(self, threshold=1e-3):
+        """Create new instance.
+
+        Parameters
+        ----------
+        threshold : float
+            Specifies a threshold for the merges. If a pair of points is
+            closer than this threshold, it will be merged.
+        """
         self.persistence_pairs = []
         self.uf = None
+        self.threshold = threshold
 
     def __call__(self, t, X, P, D):
         """Update function for this functor."""
         if not self.uf:
             self.uf = UnionFind(X.shape[0])
 
-        for i1, i2 in np.transpose(np.nonzero(D < 1e-3)):
+        for i1, i2 in np.transpose(np.nonzero(D < self.threshold)):
             if i1 > i2 and self.uf.find(i1) != self.uf.find(i2):
                 self.uf.merge(i1, i2)
 
@@ -182,6 +196,11 @@ class CalculateReturnProbabilities(Callback):
 
     This callback calculates the return probabilities for random walks
     up to a pre-defined length.
+
+    Notes
+    -----
+    This callback is not fully tested. Its output should not be relied
+    on in practice.
     """
 
     def __init__(self, K):

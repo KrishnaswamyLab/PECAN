@@ -232,7 +232,8 @@ if __name__ == '__main__':
         '-o', '--output',
         default='.',
         type=str,
-        help='Output directory'
+        help='Output directory (meaning that the filename will be '
+             'generated automatically) or output filename.'
     )
 
     # TODO: implement effects of this
@@ -304,12 +305,18 @@ if __name__ == '__main__':
     )
     data = diffusion_condensation(X, args.epsilon)
 
-    # Store data set. The name of output file is generated automatically
-    # to account for conditions of the environment.
+    # User specified an existing directory, so we generate a filename
+    # automatically and store everything in it.
+    if os.path.isdir(args.output):
+        # Store data set. The name of output file is generated automatically
+        # to account for conditions of the environment.
 
-    output_filename = generate_output_filename(args, seed)
-    output_filename = os.path.join(args.output, output_filename)
+        output_filename = generate_output_filename(args, seed)
+        output_filename = os.path.join(args.output, output_filename)
+
+    # Just use the user-provided output path.
+    else:
+        output_filename = args.output
 
     logging.info(f'Storing results in {output_filename}')
-
     np.savez(output_filename, **data)
