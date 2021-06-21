@@ -1,5 +1,7 @@
 """Callback functors to imbue condensation process with additional data."""
 
+import itertools
+
 import numpy as np
 
 from abc import ABC
@@ -202,45 +204,34 @@ class CalculateBifiltration(Callback):
     """
 
     def __call__(self, t, X, P, D):
-        """Calculates bifiltration features.
+        """Calculate bifiltration features.
 
         TODO: document me and be less terse :)
         """
-        # Basic test code taken from the API tour of Rivet:
-        #   https://github.com/rivetTDA/rivet-python/blob/master/example/RIVET%20Python%20API%20Tour.ipynb
+        vertices = [[i] for i in range(len(X))]
+
+        # Edges (without any duplicates: since the input range is already
+        # sorted, `itertools` will report everything in *lexicographical*
+        # order.
+        edges = list(itertools.combinations(range(len(X)), 2))
+
+        # Create function values for vertices first.
+        function_values = [
+            [(0, 0)] for _ in vertices
+        ]
+
+        # Use duplicates of the distance values for each edge.
+        function_values.extend(
+            [(D[i, j], D[i, j])] for i, j in edges
+        )
+
+        simplicial_complex = vertices + edges
+
         bifi = rivet.Bifiltration(
-            x_label='time of appearance',
-            y_label='network distance',
-            simplices=[
-                [0],
-                [3],
-                [4],
-                [1],
-                [2],
-                [0, 3],
-                [0, 4],
-                [3, 4],
-                [0, 1],
-                [0, 2],
-                [1, 2],
-                [0, 1, 2],
-                [0, 3, 4]
-            ],
-            appearances=[
-                [(0, 0)],
-                [(1, 0)],
-                [(1, 0)],
-                [(0, 1)],
-                [(0, 1)],
-                [(1, 0)],
-                [(1, 0)],
-                [(1, 0)],
-                [(0, 1)],
-                [(0, 1)],
-                [(0, 1)],
-                [(1, 2)],
-                [(2, 1)]
-            ]
+            x_label='distance',
+            y_label='distance',
+            simplices=simplicial_complex,
+            appearances=function_values
         )
 
         bifi_betti = rivet.betti(bifi, homology=1)
