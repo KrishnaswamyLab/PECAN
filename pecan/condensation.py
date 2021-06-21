@@ -15,6 +15,7 @@ from sklearn.metrics.pairwise import rbf_kernel
 from yaspin import yaspin
 from yaspin.spinners import Spinners
 
+from callbacks import CalculateBifiltration
 from callbacks import CalculateDiffusionHomology
 from callbacks import CalculatePersistentHomology
 
@@ -303,7 +304,8 @@ if __name__ == '__main__':
 
     callbacks = [
         CalculateDiffusionHomology(),
-        CalculatePersistentHomology()
+        CalculatePersistentHomology(),
+        CalculateBifiltration(),
     ]
 
     kernel_fn = get_kernel_fn(args.kernel)

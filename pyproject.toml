@@ -13,7 +13,7 @@ scipy = "^1.5.4"
 yaspin = "^1.2.0"
 pandas = "^1.2.0"
 seaborn = "^0.11.1"
-pyrivet = {git = "https://github.com/rivetTDA/rivet-python"}
+pyrivet = {git = "https://github.com/Pseudomanifold/rivet-python"}
 
 [tool.poetry.dev-dependencies]
 pytest = "^4.6"
