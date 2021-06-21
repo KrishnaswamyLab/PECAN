@@ -6,7 +6,7 @@ import numpy as np
 def moons(N, random_state=None, **kwargs):
     """Generate moons data set with labels."""
     from sklearn.datasets import make_moons
-    return make_moons(N, random_state=kwargs['random_state'])
+    return make_moons(N, random_state=1990)
 
 
 def barbell(N, beta=1, **kwargs):

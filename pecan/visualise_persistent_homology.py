@@ -169,6 +169,6 @@ if __name__ == '__main__':
 
     ax[3].set_title('Persistence over time')
     ax[3].set_xlabel('$t$')
-
+    # ani.save("spontaneous_generation.gif",writer="imagemagick",fps=60)
     plt.tight_layout()
     plt.show()
