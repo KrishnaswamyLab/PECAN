@@ -1,11 +1,14 @@
 """Callback functors to imbue condensation process with additional data."""
 
+import itertools
+
 import numpy as np
 
 from abc import ABC
-from abc import abstractmethod 
+from abc import abstractmethod
 
 from ripser import Ripser
+from pyrivet import rivet
 
 from utilities import UnionFind
 
@@ -15,7 +18,7 @@ class Callback(ABC):
 
     @abstractmethod
     def __call__(self, t, X, P, D):
-        """Generic update function for a single step.
+        """Update function for a single diffusion condensation step.
 
         This is the main update function that is called in each step of
         the diffusion condensation process.
@@ -189,6 +192,52 @@ class CalculateDiffusionHomology(Callback):
         })
 
         return data
+
+
+class CalculateBifiltration(Callback):
+    """Stub for bifiltration calculations.
+
+    The purpose of this callback is to be a fully-fledged callback for
+    calculating persistent homology of a bifiltration. At present, the
+    callback merely operates on the $1$-skeleton, employing sets of 2D
+    values that are duplicates of the distance values.
+    """
+
+    def __call__(self, t, X, P, D):
+        """Calculate bifiltration features.
+
+        TODO: document me and be less terse :)
+        """
+        vertices = [[i] for i in range(len(X))]
+
+        # Edges (without any duplicates: since the input range is already
+        # sorted, `itertools` will report everything in *lexicographical*
+        # order.
+        edges = list(itertools.combinations(range(len(X)), 2))
+
+        # Create function values for vertices first.
+        function_values = [
+            [(0, 0)] for _ in vertices
+        ]
+
+        # Use duplicates of the distance values for each edge.
+        function_values.extend(
+            [(D[i, j], D[i, j])] for i, j in edges
+        )
+
+        simplicial_complex = vertices + edges
+
+        bifi = rivet.Bifiltration(
+            x_label='distance',
+            y_label='distance',
+            simplices=simplicial_complex,
+            appearances=function_values
+        )
+
+        bifi_betti = rivet.betti(bifi, homology=1)
+        rank_invariant = bifi_betti.graded_rank
+
+        # TODO: do something with the rank invariant :)
 
 
 class CalculateReturnProbabilities(Callback):

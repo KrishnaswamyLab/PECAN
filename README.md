@@ -53,3 +53,24 @@ $ python visualise_diffusion_homology.py double_annulus.npz
 
 Note that *all* visualisations are meant for research purposes only and
 are subject to change as the project progresses.
+
+## Using the `Rivet` callback
+
+The code now supports *bifiltrations*. To make use of this
+functionality, you need to install [`rivet_console`](https://github.com/rivetTDA/rivet).
+If you are on Mac OS X, you can use [HomeBrew](https://brew.sh) for this
+purpose:
+
+```
+$ brew tap BorgwardtLab/mlcb
+$ brew install rivet
+```
+
+Regardless of the installation method, make sure that you tell `poetry`
+that additional dependencies are present:
+
+```
+$ poetry update
+```
+
+This ensures that the Python 'wrapper' for `rivet_console` is installed.
