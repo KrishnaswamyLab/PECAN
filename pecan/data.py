@@ -226,3 +226,25 @@ def poisson_process(N, **kwargs):
     C = np.linspace(0, 1, n)
 
     return X, C
+    
+def torus(N, inner_radius=1, outer_radius=4):
+    """ Generate n-point hollow torus with one hole. """
+    # begin by generating a hollow cylinder
+    # from N random uniform points, normalized so that y^2 + z^2 = inner_radius^2
+    X = np.random.rand(N,3)*2-1
+    X[:,1:] /= np.sqrt(np.sum(X[:,1:]**2, axis=1))[:,None]/inner_radius
+    x, y, z = X.T
+    # Twist the cylinder
+    # first, shift the cylinder on the y axis so that 0,0,0 lies at the center of the soon-to-be constructed donut
+    rod_length = outer_radius-inner_radius
+    y += outer_radius
+    # Transform into polar coordinates around Z axis
+    r = np.sqrt(x**2 + y**2)
+    theta = x*2*np.pi # we can disregard the previous angle, which didn't mean anything
+    # Back to cartesian coords
+    x = np.cos(theta)*r
+    y = np.sin(theta)*r
+
+    # Recombine the variables
+    X = np.column_stack((x,y,z))
+    return X
