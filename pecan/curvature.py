@@ -61,7 +61,8 @@ class Ollivier_Ricci_Curvature_DEMD():
 	As input, takes a graphtools graph.
 	Calculates the Ollivier-Ricci curvature using diffusion distance as the ground distance and Diffusion EMD as the Wasserstein distance.
 	"""
-	def __init__(self, graph, idleness_parameter): # TODO: Implement idlenss parameter
+	def __init__(self, graph, idleness_parameter=0.5, lp = 1): # TODO: Implement idleness parameter
+		self.lp = lp
 		# Compute symmetric diffusion operator
 		self.Ms = graph.diff_aff.toarray() #TODO: can we keep things sparse for longer
 		# TODO: DEMD already does eigendecomposition with fast algorithms. Can we reuse that?
@@ -75,7 +76,7 @@ class Ollivier_Ricci_Curvature_DEMD():
 		self.demd.fit(self.A)
 		
 	def diffusion_distances(self, i, j):
-		return np.linalg.norm(self.diffusion_coordinates[i] - self.diffusion_coordinates[j],ord=1) # use L1 norm
+		return np.linalg.norm(self.diffusion_coordinates[i] - self.diffusion_coordinates[j],ord=self.lp) 
 		
 	def EMD(self,distributions):
 		# takes two distributions as input, returns the DEMD between them.
