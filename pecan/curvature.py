@@ -43,7 +43,7 @@ class Ollivier_Ricci_Curvature_Regular_OT_with_Diffusion_Distances():
 		distributions = np.zeros((len(self.A),2))
 		distributions[:,0][i] = 1
 		distributions[:,1][j] = 1
-		distributions = distributions @ self.M # TODO: This is inefficient and could be combined with DEMD's diffusions.
+		distributions = distributions.T @ self.M # TODO: This is inefficient and could be combined with DEMD's diffusions.
 		# find demd between distributions
 		Wij = self.EMD(distributions.T)
 		# find diffusion distance between i and j
