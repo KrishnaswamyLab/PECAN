@@ -7,8 +7,8 @@ import numpy as np
 from abc import ABC
 from abc import abstractmethod
 
-from ripser import Ripser
 from pyrivet import rivet
+import scipy
 
 from utilities import UnionFind
 
@@ -238,6 +238,56 @@ class CalculateBifiltration(Callback):
         rank_invariant = bifi_betti.graded_rank
 
         # TODO: do something with the rank invariant :)
+
+
+class CalculateBifiltrationDiffusionDistance_v_Distance(Callback):
+    """Bifiltration calculations over diffusion time and distance. 
+
+    """
+
+    def __call__(self, t, X, P, D):
+        """Calculate bifiltration features.
+
+        TODO: document me and be less terse :)
+        """
+        vertices = [[i] for i in range(len(X))]
+
+        # Edges (without any duplicates: since the input range is already
+        # sorted, `itertools` will report everything in *lexicographical*
+        # order.
+        edges = list(itertools.combinations(range(len(X)), 2))
+
+        # Create function values for vertices first.
+        function_values = [
+            [(0, 0)] for _ in vertices
+        ]
+
+        # Compute the diffusion distances from 
+        # each point to a (randomly chosen) point
+        e,V = np.linalg.eig(P)
+        DiffusionCoords = V.T
+        Pdists = scipy.spatial.distance_matrix(DiffusionCoords)
+
+        # Use duplicates of the distance values for each edge.
+        function_values.extend(
+            [(D[i, j], D[i, j])] for i, j in edges
+        )
+
+        simplicial_complex = vertices + edges
+
+        bifi = rivet.Bifiltration(
+            x_label='diffusion',
+            y_label='distance',
+            simplices=simplicial_complex,
+            appearances=function_values
+        )
+
+        bifi_betti = rivet.betti(bifi, homology=1)
+        rank_invariant = bifi_betti.graded_rank
+
+        # TODO: do something with the rank invariant :)
+        # TODO: Read rivet paper -- understand how to visualize this bifiltration, and what comes out of it + how to summarize it!
+
 
 
 class CalculateReturnProbabilities(Callback):
