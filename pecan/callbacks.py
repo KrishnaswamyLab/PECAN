@@ -2,13 +2,16 @@
 
 import itertools
 
+import scipy
 import numpy as np
 
 from abc import ABC
 from abc import abstractmethod
 
+from sklearn.decomposition import PCA
+from sklearn.neighbors import NearestNeighbors
+
 from pyrivet import rivet
-import scipy
 
 from utilities import UnionFind
 
@@ -289,7 +292,6 @@ class CalculateBifiltrationDiffusionDistance_v_Distance(Callback):
         # TODO: Read rivet paper -- understand how to visualize this bifiltration, and what comes out of it + how to summarize it!
 
 
-
 class CalculateReturnProbabilities(Callback):
     """Return probabilities calculation callback.
 
@@ -351,3 +353,55 @@ class CalculateReturnProbabilities(Callback):
         })
 
         return data
+
+
+class CalculateTangentSpace(Callback):
+    """Tangent space calculation callback.
+
+    This callback calculates a tangent space and performs some
+    calculations on it.
+    """
+
+    def __init__(self, n_neighbours=8):
+        """Create new instance of the callback.
+
+        Parameters
+        ----------
+        n_neighbours : int
+            Number of neighbours to use for estimating the kernel space.
+        """
+        self.k = n_neighbours
+        self.knn = NearestNeighbors(self.k, metric='euclidean')
+
+    def __call__(self, t, X, P, D):
+        """Update function for this functor."""
+        self.knn.fit(X)
+        all_neighbours = self.knn.kneighbors(X, return_distance=False)
+
+        for i, neighbours in enumerate(all_neighbours):
+            self._estimate_tangent_space(X, i, neighbours)
+
+    def _estimate_tangent_space(self, X, index, neighbour_indices):
+        # Create local space with `X[index]` being the base point. We
+        # aim to estimate the *tangent* space around this point, so a
+        # local coordinate system is required.
+        Y = X[neighbour_indices, :] - X[index]
+
+        pca = PCA()
+        pca.fit(Y)
+
+        components = pca.components_
+
+        # Project all points into the respective space spanned by each of
+        # the components.
+        Z = [np.dot(Y, c) for c in components]
+
+        def loss_function(x, *args):
+            alpha = 0.0
+            n = len(x)
+            for z in Z:
+                for i in range(n):
+                    for j in range(n):
+                        alpha += x[i] * x[j] * z[i] * z[j]
+
+            return alpha
