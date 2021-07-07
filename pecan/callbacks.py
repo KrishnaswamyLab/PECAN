@@ -395,13 +395,55 @@ class CalculateTangentSpace(Callback):
         # Project all points into the respective space spanned by each of
         # the components.
         Z = [np.dot(Y, c) for c in components]
+        dimension = len(Z) - 1
 
-        def loss_function(x, *args):
-            alpha = 0.0
-            n = len(x)
-            for z in Z:
-                for i in range(n):
-                    for j in range(n):
-                        alpha += x[i] * x[j] * z[i] * z[j]
+        x0 = np.zeros((dimension, dimension)).ravel()
+        result = scipy.optimize.minimize(
+            self._hypersurface_loss,
+            x0,
+            args=(Z, Y),
+            method='Nelder-Mead'
+        )
 
-            return alpha
+    def _hypersurface_loss(self, A, *args):
+        """Loss entailed by a quadratic hypersurface fit.
+
+        Parameters
+        ----------
+        A : np.array of shape (d**2, )
+            The coefficients for fitting the hypersurface, with `d`
+            referring to the local dimension.
+
+        *args : tuple
+            Tuple containing fit parameters, viz. `Z`, the projections
+            of points onto the respective basis vectors, and `Y`, the
+            local tangent space.
+
+        Returns
+        -------
+        Error for the fit with current parameters `A`.
+        """
+        Z = args[0]     # projections
+        Y = args[1]     # local tangent space
+        D = len(Z) - 1  # dimension of fit
+        n = len(Y)      # number of points
+        A = A.reshape((D, D))
+
+        loss = 0.0
+
+        for i in range(n):
+            loss_per_point = 0.0
+
+            for d1 in range(D):
+                for d2 in range(D):
+                    loss_per_point += Z[d1][i] * Z[d2][i] * A[d1, d2]
+
+            loss_per_point -= Z[D][i]
+            loss_per_point = 0.5 * loss_per_point**2
+
+            loss += loss_per_point
+
+        # Just to be nice, we turn it back into the format desired by
+        # the optimisation function.
+        A = A.ravel()
+        return loss
