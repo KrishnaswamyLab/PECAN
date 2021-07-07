@@ -373,15 +373,21 @@ class CalculateTangentSpace(Callback):
         """
         self.k = n_neighbours
         self.knn = NearestNeighbors(self.k, metric='euclidean')
+        self.curvature = {}
 
     def __call__(self, t, X, P, D):
         """Update function for this functor."""
         self.knn.fit(X)
         all_neighbours = self.knn.kneighbors(X, return_distance=False)
 
+        curvature = []
+
         for i, neighbours in enumerate(all_neighbours):
-            curvature = self._estimate_tangent_space(X, i, neighbours)
-            print(curvature)
+            local_curvature = self._estimate_tangent_space(X, i, neighbours)
+            curvature.append(local_curvature)
+
+        # Store all curvature values for the current time step.
+        self.curvature[t] = curvature
 
     def _estimate_tangent_space(self, X, index, neighbour_indices):
         # Create local space with `X[index]` being the base point. We
