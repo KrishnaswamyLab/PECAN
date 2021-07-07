@@ -1,6 +1,7 @@
 """Callback functors to imbue condensation process with additional data."""
 
 import itertools
+import warnings
 
 import scipy
 import numpy as np
@@ -379,7 +380,8 @@ class CalculateTangentSpace(Callback):
         all_neighbours = self.knn.kneighbors(X, return_distance=False)
 
         for i, neighbours in enumerate(all_neighbours):
-            self._estimate_tangent_space(X, i, neighbours)
+            curvature = self._estimate_tangent_space(X, i, neighbours)
+            print(curvature)
 
     def _estimate_tangent_space(self, X, index, neighbour_indices):
         # Create local space with `X[index]` being the base point. We
@@ -388,7 +390,13 @@ class CalculateTangentSpace(Callback):
         Y = X[neighbour_indices, :] - X[index]
 
         pca = PCA()
-        pca.fit(Y)
+
+        # Ignore some issues with the fitting process. As condensation
+        # continues, the fit might be degenerate because everything is
+        # converging towards a single point.
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=RuntimeWarning)
+            pca.fit(Y)
 
         components = pca.components_
 
@@ -404,6 +412,10 @@ class CalculateTangentSpace(Callback):
             args=(Z, Y),
             method='Nelder-Mead'
         )
+
+        x0 = result.x.reshape((dimension, dimension))
+        curvature = np.linalg.det(x0)
+        return curvature
 
     def _hypersurface_loss(self, A, *args):
         """Loss entailed by a quadratic hypersurface fit.
@@ -434,6 +446,8 @@ class CalculateTangentSpace(Callback):
         for i in range(n):
             loss_per_point = 0.0
 
+            # TODO: this is relatively inefficient, but at least it's
+            # readable!
             for d1 in range(D):
                 for d2 in range(D):
                     loss_per_point += Z[d1][i] * Z[d2][i] * A[d1, d2]
