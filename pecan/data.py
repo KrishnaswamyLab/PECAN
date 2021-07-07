@@ -1,27 +1,24 @@
 """Data set generator methods."""
 
 import numpy as np
-import tadasets
 
 
 def moons(N, **kwargs):
     """Generate moons data set with labels."""
     from sklearn.datasets import make_moons
-
     return make_moons(N, random_state=1990)
 
 
 def nested_circles(N, **kwargs):
     """Generate nested circles with labels."""
     from sklearn.datasets import make_circles
-
-    return make_circles(N, random_state=kwargs["random_state"])
+    return make_circles(N, random_state=kwargs['random_state'])
 
 
 def barbell(N, beta=1, **kwargs):
     """Generate uniformly-sampled 2-D barbelll with colours."""
-    if kwargs.get("random_state"):
-        np.random.seed(kwargs["random_state"])
+    if kwargs.get('random_state'):
+        np.random.seed(kwargs['random_state'])
 
     X = []
     C = []
@@ -48,14 +45,17 @@ def barbell(N, beta=1, **kwargs):
 
 def double_annulus(N, **kwargs):
     """Sample N points from a double annulus."""
-    if kwargs.get("random_state"):
-        np.random.seed(kwargs["random_state"])
+    if kwargs.get('random_state'):
+        np.random.seed(kwargs['random_state'])
 
     X = []
     C = []
     for i in range(N):
         while True:
-            t = [np.random.uniform(-50, 50, 1)[0], np.random.uniform(-50, 140, 1)[0]]
+            t = [
+                    np.random.uniform(-50, 50, 1)[0],
+                    np.random.uniform(-50, 140, 1)[0]
+            ]
 
             d = np.sqrt(np.dot(t, t))
             if d <= 50 and d >= 20:
@@ -99,10 +99,12 @@ def annulus(N, r, R, **kwargs):
     Array of (x, y) coordinates.
     """
     if r >= R:
-        raise RuntimeError("Inner radius must be less than or equal to " "outer radius")
+        raise RuntimeError(
+            'Inner radius must be less than or equal to outer radius'
+        )
 
-    if kwargs.get("random_state"):
-        np.random.seed(kwargs["random_state"])
+    if kwargs.get('random_state'):
+        np.random.seed(kwargs['random_state'])
 
     thetas = np.random.uniform(0, 2 * np.pi, N)
 
@@ -185,7 +187,7 @@ def petals(N, **kwargs):
     Y = []  # auxiliary array (points on outer circle)
     C = []
 
-    assert N > 4, "Require more than four data points"
+    assert N > 4, 'Require more than four data points'
 
     # Number of 'petals' to point into the data set. This is required to
     # ensure that the full space is used.
@@ -201,7 +203,9 @@ def petals(N, **kwargs):
 
     for i, x in enumerate(Y):
         for theta in thetas:
-            X.append(np.asarray([r * np.cos(theta) - x[0], r * np.sin(theta) - x[1]]))
+            X.append(np.asarray(
+                [r * np.cos(theta) - x[0], r * np.sin(theta) - x[1]])
+            )
 
             # Indicates that this point belongs to the $i$th circle.
             C.append(i)
@@ -211,8 +215,8 @@ def petals(N, **kwargs):
 
 def poisson_process(N, **kwargs):
     """Generate points based on a Poisson process."""
-    if kwargs.get("random_state"):
-        np.random.seed(kwargs["random_state"])
+    if kwargs.get('random_state'):
+        np.random.seed(kwargs['random_state'])
 
     n = np.random.poisson(N)
     X = np.random.rand(n, 2)
@@ -253,6 +257,7 @@ def sphere(N, dim=3):
         N (int): Number of points
         dim (int, optional): Dimension of sphere. Defaults to 3.
     """
+    import tadasets
     dsphere = tadasets.dsphere(
         n=N, d=dim - 1, r=1
     )  # TODO: Can also specify the amount of noise to add to the sphere
