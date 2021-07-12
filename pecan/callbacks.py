@@ -1,14 +1,18 @@
 """Callback functors to imbue condensation process with additional data."""
 
 import itertools
+import warnings
 
+import scipy
 import numpy as np
 
 from abc import ABC
 from abc import abstractmethod
 
+from sklearn.decomposition import PCA
+from sklearn.neighbors import NearestNeighbors
+
 from pyrivet import rivet
-import scipy
 
 from utilities import UnionFind
 
@@ -289,7 +293,6 @@ class CalculateBifiltrationDiffusionDistance_v_Distance(Callback):
         # TODO: Read rivet paper -- understand how to visualize this bifiltration, and what comes out of it + how to summarize it!
 
 
-
 class CalculateReturnProbabilities(Callback):
     """Return probabilities calculation callback.
 
@@ -351,3 +354,116 @@ class CalculateReturnProbabilities(Callback):
         })
 
         return data
+
+
+class CalculateTangentSpace(Callback):
+    """Tangent space calculation callback.
+
+    This callback calculates a tangent space and performs some
+    calculations on it.
+    """
+
+    def __init__(self, n_neighbours=8):
+        """Create new instance of the callback.
+
+        Parameters
+        ----------
+        n_neighbours : int
+            Number of neighbours to use for estimating the kernel space.
+        """
+        self.k = n_neighbours
+        self.knn = NearestNeighbors(self.k, metric='euclidean')
+        self.curvature = {}
+
+    def __call__(self, t, X, P, D):
+        """Update function for this functor."""
+        self.knn.fit(X)
+        all_neighbours = self.knn.kneighbors(X, return_distance=False)
+
+        curvature = []
+
+        for i, neighbours in enumerate(all_neighbours):
+            local_curvature = self._estimate_tangent_space(X, i, neighbours)
+            curvature.append(local_curvature)
+
+        # Store all curvature values for the current time step.
+        self.curvature[t] = curvature
+
+    def _estimate_tangent_space(self, X, index, neighbour_indices):
+        # Create local space with `X[index]` being the base point. We
+        # aim to estimate the *tangent* space around this point, so a
+        # local coordinate system is required.
+        Y = X[neighbour_indices, :] - X[index]
+
+        pca = PCA()
+
+        # Ignore some issues with the fitting process. As condensation
+        # continues, the fit might be degenerate because everything is
+        # converging towards a single point.
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=RuntimeWarning)
+            pca.fit(Y)
+
+        components = pca.components_
+
+        # Project all points into the respective space spanned by each of
+        # the components.
+        Z = [np.dot(Y, c) for c in components]
+        dimension = len(Z) - 1
+
+        x0 = np.zeros((dimension, dimension)).ravel()
+        result = scipy.optimize.minimize(
+            self._hypersurface_loss,
+            x0,
+            args=(Z, Y),
+            method='Nelder-Mead'
+        )
+
+        x0 = result.x.reshape((dimension, dimension))
+        curvature = np.linalg.det(x0)
+        return curvature
+
+    def _hypersurface_loss(self, A, *args):
+        """Loss entailed by a quadratic hypersurface fit.
+
+        Parameters
+        ----------
+        A : np.array of shape (d**2, )
+            The coefficients for fitting the hypersurface, with `d`
+            referring to the local dimension.
+
+        *args : tuple
+            Tuple containing fit parameters, viz. `Z`, the projections
+            of points onto the respective basis vectors, and `Y`, the
+            local tangent space.
+
+        Returns
+        -------
+        Error for the fit with current parameters `A`.
+        """
+        Z = args[0]     # projections
+        Y = args[1]     # local tangent space
+        D = len(Z) - 1  # dimension of fit
+        n = len(Y)      # number of points
+        A = A.reshape((D, D))
+
+        loss = 0.0
+
+        for i in range(n):
+            loss_per_point = 0.0
+
+            # TODO: this is relatively inefficient, but at least it's
+            # readable!
+            for d1 in range(D):
+                for d2 in range(D):
+                    loss_per_point += Z[d1][i] * Z[d2][i] * A[d1, d2]
+
+            loss_per_point -= Z[D][i]
+            loss_per_point = 0.5 * loss_per_point**2
+
+            loss += loss_per_point
+
+        # Just to be nice, we turn it back into the format desired by
+        # the optimisation function.
+        A = A.ravel()
+        return loss
