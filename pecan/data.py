@@ -225,7 +225,7 @@ def poisson_process(N, **kwargs):
     return X, C
 
 
-def torus(N, inner_radius=1, outer_radius=4):
+def torus(N, inner_radius=3, outer_radius=10):
     """Generate n-point hollow torus with one hole."""
     # begin by generating a hollow cylinder
     # from N random uniform points, normalized so that y^2 + z^2 = inner_radius^2
