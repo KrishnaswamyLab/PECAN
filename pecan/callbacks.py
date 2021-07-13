@@ -14,6 +14,7 @@ from sklearn.neighbors import NearestNeighbors
 
 from pyrivet import rivet
 
+from ripser import Ripser
 from utilities import UnionFind
 
 
@@ -372,7 +373,7 @@ class CalculateTangentSpace(Callback):
             Number of neighbours to use for estimating the kernel space.
         """
         self.k = n_neighbours
-        self.knn = NearestNeighbors(self.k, metric='euclidean')
+        self.knn = NearestNeighbors(n_neighbors=self.k, metric='euclidean')
         self.curvature = {}
 
     def __call__(self, t, X, P, D):
@@ -388,6 +389,15 @@ class CalculateTangentSpace(Callback):
 
         # Store all curvature values for the current time step.
         self.curvature[t] = curvature
+
+    def finalise(self, data):
+        """Update data dictionary."""
+        data.update({
+            f'curvature_t_{i}': curv for i, curv in
+            self.curvature.items()
+        })
+
+        return data
 
     def _estimate_tangent_space(self, X, index, neighbour_indices):
         # Create local space with `X[index]` being the base point. We
