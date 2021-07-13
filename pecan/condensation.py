@@ -18,6 +18,7 @@ from yaspin.spinners import Spinners
 from callbacks import CalculateBifiltration
 from callbacks import CalculateDiffusionHomology
 from callbacks import CalculatePersistentHomology
+from callbacks import CalculateTangentSpace
 
 import data
 
@@ -201,6 +202,15 @@ if __name__ == '__main__':
     )
 
     parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        '-c', '--callbacks',
+        default=None,
+        nargs='+',
+        help='Specifies names for callbacks to use. The full callback class '
+             'name must be provided.'
+    )
+
     parser.add_argument(
         '-d', '--data',
         default='hyperuniform_ellipse',
@@ -302,11 +312,29 @@ if __name__ == '__main__':
     logging.info(f'Number of samples: {args.num_samples}')
     logging.info(f'Epsilon: {args.epsilon:.4f}')
 
-    callbacks = [
-        CalculateDiffusionHomology(),
-        CalculatePersistentHomology(),
-        CalculateBifiltration(),
-    ]
+    # Get default callbacks if user did not provide anything else. Feel
+    # free to change this.
+    if args.callbacks is None:
+        callbacks = [
+            CalculateDiffusionHomology(),
+            CalculatePersistentHomology(),
+            CalculateBifiltration(),
+        ]
+    else:
+        import callbacks as cb
+
+        # Initialise callbacks with default parameters.
+        callbacks = [
+            getattr(cb, callback, None)() for callback in args.callbacks
+        ]
+
+        # Silently ignore all callbacks that were not found.
+        callbacks = [
+            callback for callback in callbacks if callback is not None
+        ]
+
+        logging.info(f'Running analysis with the following set of '
+                     f'callbacks: {callbacks}')
 
     kernel_fn = get_kernel_fn(args.kernel)
 
