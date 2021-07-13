@@ -525,7 +525,7 @@ class DiffusionRayCurvatureV2:
     As input, takes raw data points.
     """
 
-    def __init__(self, X, t=1, knn=5, num_steps=20, percent_of_manifold_to_cover=0.3,n_evecs=10):
+    def __init__(self, X, t=1, knn=5, num_steps=20, percent_of_manifold_to_cover=0.3,n_evecs=10,radius=0.3):
         self.points = X
         self.num_points = len(X)
         self.t = t
@@ -533,6 +533,7 @@ class DiffusionRayCurvatureV2:
         self.num_steps = num_steps
         self.percent_of_manifold_to_cover = percent_of_manifold_to_cover
         self.name = "Diffusion Ray Curvature"  # to be programmatically accessed by printing functions, e.g.
+        self.radius = radius
         dmap = diffusion_map.DiffusionMap.from_sklearn(
             epsilon=0.15, alpha=0.5, n_evecs=n_evecs
         )
@@ -552,6 +553,8 @@ class DiffusionRayCurvatureV2:
         # Find max diffusion distance from i
         distances_to_i = self.diffusion_distances_to(i)
         max_dist_to_i = np.max(distances_to_i)
+        # Convert this distance to a radius of inclusion
+        radius = self.radius * max_dist_to_i
         # find k nearest neighbors for i.
         nn = np.argsort(distances_to_i)  # sorts the adjacency matrix
         knn = nn[1: self.knn+1]  # takes the k values with highest affinity
@@ -563,12 +566,12 @@ class DiffusionRayCurvatureV2:
         for m, k in enumerate(knn):
             # Loop through all points in the dataset and compute the distance from $p$ to the ray that passes through x and y
             point_dists = []
-            print("k is ",k)
             y = self.diffusion_coordinates[k]
-            print(y-x)
             normalized_ray_direction = (y - x)/np.linalg.norm(y-x)
-            print("norm of y-x",np.linalg.norm(normalized_ray_direction))
-            for n, p in enumerate(self.diffusion_coordinates):
+            # Only consider coordinates within a specified radius from the central point
+            points_within_radius = (distances_to_i <= radius).nonzero()[0] # gives the indices of points within the radius from i
+            for n, j in enumerate(points_within_radius):
+                p = self.diffusion_coordinates[j]
                 # length of the hypotenuse from x to p
                 c2 = np.linalg.norm(p - x) ** 2
                 # length of ray to p's projection onto y-x
@@ -577,8 +580,109 @@ class DiffusionRayCurvatureV2:
                 b2 = c2 - a2
                 point_dists.append(b2)
             # take the closest num_step points
-            print("Sorted point dists",np.sort(point_dists))
-            ray_coords[m] = np.argsort(point_dists)[: self.num_steps]
+            # print("Sorted point dists",np.sort(point_dists))
+            ray_coords[m] = points_within_radius[np.argsort(point_dists)[: self.num_steps]]
+            # print("have ray coords",ray_coords[m])
+        # for each array, compute a line of diffusion distances
+        distances_between_rays = np.empty((self.knn ** 2, self.num_steps))
+        for ray1 in range(self.knn):
+            for ray2 in range(self.knn):
+                for step in range(self.num_steps):
+                    # print("taking slice ",ray_coords[ray1][step])
+                    distances_between_rays[ray1 * self.knn + ray2][
+                        step
+                    ] = np.linalg.norm(
+                        self.diffusion_coordinates[ray_coords[ray1][step]]
+                        - self.diffusion_coordinates[ray_coords[ray2][step]]
+                    )
+
+        # estimate curvature by comparing the integral of the difference growth to the expected linear increase
+        # TODO: How best to combine multiple rays into a single curvature measurement?
+        deviations_total = 0
+        nonzero_deviations = 0
+        for dr in distances_between_rays:
+            expected = dr[-1] * self.num_steps / 2
+            actual = np.sum(dr)
+            if actual != 0:
+                deviations_total += actual - expected
+                nonzero_deviations += 1
+        # average deviation by number of rays
+        deviations_avg = deviations_total #/ nonzero_deviations
+        return deviations_avg, ray_coords, distances_between_rays
+
+    def pointwise_curvature(self):
+        # returns an [n_points] sized array of pointwise curvatures.
+        # TODO: How can we speed up redundant distance calculations?
+        # TODO: We probably don't need to compute the curvature of every point. Can we sample points, and then average the curvatures around them?
+        curvatures = np.empty(self.num_points)
+        for i in trange(self.num_points):
+            curvatures[i] = self.curvature(i)[0]
+        return curvatures
+
+
+
+class DiffusionForkCurvature:
+    """
+    As input, takes raw data points.
+    """
+
+    def __init__(self, X, t=1, knn=5, num_steps=20, percent_of_manifold_to_cover=0.3,n_evecs=10,radius=0.3):
+        self.points = X
+        self.num_points = len(X)
+        self.t = t
+        self.knn = knn
+        self.num_steps = num_steps
+        self.percent_of_manifold_to_cover = percent_of_manifold_to_cover
+        self.name = "Diffusion Ray Curvature"  # to be programmatically accessed by printing functions, e.g.
+        self.radius = radius
+        dmap = diffusion_map.DiffusionMap.from_sklearn(
+            epsilon=0.15, alpha=0.5, n_evecs=n_evecs
+        )
+        self.diffusion_coordinates = dmap.fit_transform(X)
+
+    def diffusion_distances_to(self, i):
+        return np.linalg.norm(
+            self.diffusion_coordinates
+            - (
+                np.ones_like(self.diffusion_coordinates)
+                @ np.diag(self.diffusion_coordinates[i])
+            ),
+            axis=1,
+        )
+
+    def curvature(self, i):
+        # Find max diffusion distance from i
+        distances_to_i = self.diffusion_distances_to(i)
+        max_dist_to_i = np.max(distances_to_i)
+        # Convert this distance to a radius of inclusion
+        radius = self.radius * max_dist_to_i
+        # find k nearest neighbors for i.
+        nn = np.argsort(distances_to_i)  # sorts the adjacency matrix
+        knn = nn[1: self.knn+1]  # takes the k values with highest affinity
+        # Simple proof of concept: can be heavily optimized
+        # Loop through nearest neighbors and assemble rays for each
+        rays = np.zeros((self.knn, self.num_steps, self.diffusion_coordinates.shape[1]))
+        ray_coords = np.zeros((self.knn, self.num_steps),dtype=np.int)  # for debugging
+        x = self.diffusion_coordinates[i]
+        for m, k in enumerate(knn):
+            # Loop through all points in the dataset and compute the distance from $p$ to the ray that passes through x and y
+            point_dists = []
+            y = self.diffusion_coordinates[k]
+            normalized_ray_direction = (y - x)/np.linalg.norm(y-x)
+            # Only consider coordinates within a specified radius from the central point
+            points_within_radius = (distances_to_i <= radius).nonzero()[0] # gives the indices of points within the radius from i
+            for n, j in enumerate(points_within_radius):
+                p = self.diffusion_coordinates[j]
+                # length of the hypotenuse from x to p
+                c2 = np.linalg.norm(p - x) ** 2
+                # length of ray to p's projection onto y-x
+                a2 = (np.dot(normalized_ray_direction, p - x)) ** 2
+                # length of shortest side from p to closest point on ray y-x
+                b2 = c2 - a2
+                point_dists.append(b2)
+            # take the closest num_step points
+            # print("Sorted point dists",np.sort(point_dists))
+            ray_coords[m] = points_within_radius[np.argsort(point_dists)[: self.num_steps]]
             # print("have ray coords",ray_coords[m])
         # for each array, compute a line of diffusion distances
         distances_between_rays = np.empty((self.knn ** 2, self.num_steps))
