@@ -1,7 +1,13 @@
+*.npz
 *.pyc
-*.lock
 *.swp
 
+*.lock
+
 data/
+
 Notebooks/.ipynb_checkpoints/
+
 __pycache__/
+
+.DS_Store

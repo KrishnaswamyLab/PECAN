@@ -14,6 +14,7 @@ from sklearn.neighbors import NearestNeighbors
 
 from pyrivet import rivet
 
+from ripser import Ripser
 from utilities import UnionFind
 
 
@@ -136,6 +137,10 @@ class CalculatePersistentHomology(Callback):
         self.persistence_pairs[t] = tuples
         self.persistence_points[t] = points
 
+    def __repr__(self):
+        """Return name of callback."""
+        return 'CalculatePersistentHomology'
+
     def finalise(self, data):
         """Update data dictionary."""
         data.update({
@@ -186,6 +191,10 @@ class CalculateDiffusionHomology(Callback):
                 # this pair is easy because *everything* is created
                 # at t = 0.
                 self.persistence_pairs.append((0, t))
+
+    def __repr__(self):
+        """Return name of callback."""
+        return 'CalculateDiffusionHomology'
 
     def finalise(self, data):
         """Update data dictionary."""
@@ -242,6 +251,10 @@ class CalculateBifiltration(Callback):
         rank_invariant = bifi_betti.graded_rank
 
         # TODO: do something with the rank invariant :)
+
+    def __repr__(self):
+        """Return name of callback."""
+        return 'CalculateBifiltration'
 
 
 class CalculateBifiltrationDiffusionDistance_v_Distance(Callback):
@@ -372,7 +385,7 @@ class CalculateTangentSpace(Callback):
             Number of neighbours to use for estimating the kernel space.
         """
         self.k = n_neighbours
-        self.knn = NearestNeighbors(self.k, metric='euclidean')
+        self.knn = NearestNeighbors(n_neighbors=self.k, metric='euclidean')
         self.curvature = {}
 
     def __call__(self, t, X, P, D):
@@ -388,6 +401,19 @@ class CalculateTangentSpace(Callback):
 
         # Store all curvature values for the current time step.
         self.curvature[t] = curvature
+
+    def __repr__(self):
+        """Return name of callback."""
+        return 'CalculateTangentSpace'
+
+    def finalise(self, data):
+        """Update data dictionary."""
+        data.update({
+            f'curvature_t_{i}': curv for i, curv in
+            self.curvature.items()
+        })
+
+        return data
 
     def _estimate_tangent_space(self, X, index, neighbour_indices):
         # Create local space with `X[index]` being the base point. We
