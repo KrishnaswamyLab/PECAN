@@ -33,6 +33,7 @@ ipympl = "^0.7.0"
 nbformat = "^5.1.3"
 pydiffmap = "^0.2.0"
 tqdm = "^4.61.2"
+phate = "^1.0.7"
 
 [tool.poetry.dev-dependencies]
 pytest = "^4.6"
