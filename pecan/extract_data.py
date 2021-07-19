@@ -40,6 +40,65 @@ def extract_point_clouds(data, parsed_keys, prefix, out_dir):
         )
 
 
+def extract_diffusion_homology(data, parsed_keys, prefix, out_dir):
+    """Extract diffusion homology pairs."""
+    assert 'diffusion_homology_persistence_pairs' in parsed_keys, \
+        'Require "diffusion_homology_persistence_pairs" key'
+
+    assert 'data' in parsed_keys, 'Require "data" key'
+
+    X = make_tensor(data, parsed_keys['data'])
+    T = X.shape[-1]
+    pd = data['diffusion_homology_persistence_pairs']
+
+    total_persistence = [
+        np.sum(np.diff(pd[pd[:, 1] <= t])) for t in range(T)
+    ]
+
+    P = np.max(total_persistence)
+
+    out = os.path.join(
+        out_dir, prefix + '_total_persistence.txt'
+    )
+
+    logging.info(f'Storing total persistence curve in {out}...')
+
+    pd = [
+        (t, pers / P) for t, pers in zip(range(T), total_persistence)
+    ]
+
+    np.savetxt(
+        out,
+        pd,
+        fmt='%.8f',
+        delimiter='\t',
+        header='time\ttotal_persistence',
+        comments=''
+    )
+
+
+def extract_persistence_points(data, parsed_keys, prefix, out_dir):
+    """Extract persistence points."""
+    assert 'persistence_points' in parsed_keys, \
+        'Require "persistence_points" key'
+
+    persistence_diagrams = [
+        data[key] for key, _ in parsed_keys['persistence_points']
+    ]
+
+    persistence_diagrams = [d[d[:, 2] == 1] for d in persistence_diagrams]
+
+    print(persistence_diagrams)
+
+    #print('time,creation,destruction')
+    #for t, pd in zip(range(T), persistence_diagrams):
+    #    if len(pd):
+    #        for x, y, d in pd:
+    #            print(f'{t},{x:.4f},{y:.4f}')
+    #    else:
+    #        print(f'{t},0,0')
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('INPUT')
@@ -55,9 +114,10 @@ if __name__ == '__main__':
     prefix = os.path.splitext(prefix)[0]
 
     extract_point_clouds(data, parsed_keys, prefix, '/tmp')
+    extract_diffusion_homology(data, parsed_keys, prefix, '/tmp')
+    extract_persistence_points(data, parsed_keys, prefix, '/tmp')
 
-    assert 'diffusion_homology_persistence_pairs' in parsed_keys, \
-        'Require "diffusion_homology_persistence_pairs" key'
+    raise 'heck'
 
     X = make_tensor(data, parsed_keys['data'])
     T = X.shape[-1]
