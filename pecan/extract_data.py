@@ -21,7 +21,7 @@ if __name__ == '__main__':
 
     # Load data and check whether all keys are available. We require
     # only the diffusion homology pairs and the data set here.
-    data = np.load(args.INPUT)
+    data = np.load(args.INPUT, allow_pickle=True)
     parsed_keys = parse_keys(data)
 
     assert 'data' in parsed_keys, 'Require "data" key'
@@ -42,7 +42,35 @@ if __name__ == '__main__':
             comments=''
         )
 
-    raise 'heck'
+    pd = data['diffusion_homology_persistence_pairs']
+
+    total_persistence = [
+        np.sum(np.diff(pd[pd[:, 1] <= t])) for t in range(T)
+    ]
+
+    P = np.max(total_persistence)
+
+    #for t, pers in zip(range(T), total_persistence):
+    #    print(f"{t}, {pers / P:.4f}")
+
+    persistence_diagrams = [
+        data[key] for key, _ in parsed_keys['persistence_points']
+    ]
+
+    persistence_diagrams = [d[d[:, 2] == 1] for d in persistence_diagrams]
+
+    print('time,creation,destruction')
+    for t, pd in zip(range(T), persistence_diagrams):
+        if len(pd):
+            for x, y, d in pd:
+                print(f'{t},{x:.4f},{y:.4f}')
+        else:
+            print(f'{t},0,0')
+
+    #for i, (c, d) in enumerate(pd):
+    #    print(f'{c}, {i}')
+    #    print(f'{d}, {i}')
+    #    print('')
 
     # Set up the diffusion homology pairing. This just amounts to
     # accessing the distribution of pairs and turning them into a
@@ -50,7 +78,6 @@ if __name__ == '__main__':
 
     # List of persistence pairs of the form (creation, destruction). An
     # optional third dimension is ignored.
-    pd = data['diffusion_homology_persistence_pairs']
 
     ax[1].set_title('Diffusion barcode')
     ax[1].set_xlim(0, np.max(pd[:, 1]))     # Length of longest bar
