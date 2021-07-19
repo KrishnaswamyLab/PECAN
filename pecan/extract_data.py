@@ -1,7 +1,8 @@
-"""Extract output of condensation process."""
+"""Extract output of condensation process for publications."""
 
 import argparse
-import sys
+import os
+import logging
 
 import numpy as np
 
@@ -10,21 +11,50 @@ from utilities import make_tensor
 from utilities import get_limits
 
 
+logging.basicConfig(level=logging.DEBUG)
+
+
+def extract_point_clouds(data, parsed_keys, prefix, out_dir):
+    """Extract point clouds and store them as text files."""
+    assert 'data' in parsed_keys, 'Require "data" key'
+
+    X = make_tensor(data, parsed_keys['data'])
+    T = X.shape[-1]
+
+    n_digits = int(np.log10(T) + 1)
+
+    for t in range(T):
+        out = os.path.join(
+            out_dir, prefix + f'_t{t:0{n_digits}d}.txt'
+        )
+
+        logging.info(f'Storing point cloud in {out}...')
+
+        np.savetxt(
+            out,
+            X[:, :, t],
+            fmt='%.8f',
+            delimiter='\t',
+            header='x\ty',
+            comments=''
+        )
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('INPUT')
 
     args = parser.parse_args()
 
-    if args.INPUT == '-':
-        args.INPUT = sys.stdin
-
     # Load data and check whether all keys are available. We require
     # only the diffusion homology pairs and the data set here.
     data = np.load(args.INPUT, allow_pickle=True)
     parsed_keys = parse_keys(data)
 
-    assert 'data' in parsed_keys, 'Require "data" key'
+    prefix = os.path.basename(args.INPUT)
+    prefix = os.path.splitext(prefix)[0]
+
+    extract_point_clouds(data, parsed_keys, prefix, '/tmp')
 
     assert 'diffusion_homology_persistence_pairs' in parsed_keys, \
         'Require "diffusion_homology_persistence_pairs" key'
