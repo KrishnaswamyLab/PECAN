@@ -86,17 +86,31 @@ def extract_persistence_points(data, parsed_keys, prefix, out_dir):
         data[key] for key, _ in parsed_keys['persistence_points']
     ]
 
+    # TODO: restrict to other dimensions?
     persistence_diagrams = [d[d[:, 2] == 1] for d in persistence_diagrams]
+    T = len(persistence_diagrams)
+    n_digits = int(np.log10(T) + 1)
 
-    print(persistence_diagrams)
+    for t, pd in zip(range(T), persistence_diagrams):
+        out = os.path.join(
+            out_dir, prefix + f'_persistence_diagram_t{t:0{n_digits}d}.txt'
+        )
 
-    #print('time,creation,destruction')
-    #for t, pd in zip(range(T), persistence_diagrams):
-    #    if len(pd):
-    #        for x, y, d in pd:
-    #            print(f'{t},{x:.4f},{y:.4f}')
-    #    else:
-    #        print(f'{t},0,0')
+        logging.info(f'Storing persistence diagram in {out}...')
+
+        pd = pd[:, 0:2]
+
+        if len(pd) == 0:
+            pd = [[0, 0]]
+
+        np.savetxt(
+            out,
+            pd,
+            fmt='%.8f',
+            delimiter='\t',
+            header='creation\tdestruction',
+            comments=''
+        )
 
 
 if __name__ == '__main__':
