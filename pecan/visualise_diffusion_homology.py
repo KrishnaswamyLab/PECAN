@@ -17,7 +17,7 @@ from utilities import get_limits
 
 def update(i):
     """Update function for animation."""
-    scatter.set_offsets(X[..., i])
+    scatter.set_offsets(X[..., i][:, 0:2])
 
     # Figure out all intervals to draw here
     values = [destruction for _, destruction in pd if destruction <= i]
