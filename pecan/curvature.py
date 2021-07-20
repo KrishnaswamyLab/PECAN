@@ -554,11 +554,11 @@ class DiffusionRayCurvatureV2:
         # )
         # self.diffusion_coordinates = dmap.fit_transform(X)
 
-        self.A = graph.K - np.eye(len(graph.K))
+        self.A = graph.K.toarray() - np.eye(len(graph.K.toarray()))
         self.num_points = len(self.A)
         D = np.diag(1 / np.sum(self.A, axis=1) ** 0.5)
         # # Compute symmetric diffusion operator
-        self.Ms = graph.diff_aff  # TODO: can we keep things sparse for longer
+        self.Ms = graph.diff_aff.toarray()  # TODO: can we keep things sparse for longer
         # # eigendecompose # TODO: DEMD already does eigendecomposition with fast algorithms. Can we reuse that?
         # # Create diffusion map and diffusion coordinates (basis of diffusion distance)
         print("Eigendecomposing diffusion matrix")
@@ -578,7 +578,8 @@ class DiffusionRayCurvatureV2:
             axis=1,
         )
 
-    def curvature(self, i):
+    def curvature(self, i, num_steps=20):
+        self.num_steps = num_steps
         # Find max diffusion distance from i
         distances_to_i = self.diffusion_distances_to(i)
         max_dist_to_i = np.max(distances_to_i)
