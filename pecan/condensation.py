@@ -9,18 +9,18 @@ import sys
 import numpy as np
 
 from sklearn.metrics.pairwise import euclidean_distances
-from sklearn.metrics.pairwise import laplacian_kernel
 from sklearn.metrics.pairwise import rbf_kernel
 
 from yaspin import yaspin
 from yaspin.spinners import Spinners
 
+import data
+
 from callbacks import CalculateBifiltration
 from callbacks import CalculateDiffusionHomology
 from callbacks import CalculatePersistentHomology
-from callbacks import CalculateTangentSpace
 
-import data
+from kernels import get_kernel_fn
 
 from utilities import estimate_epsilon
 from utilities import generate_output_filename
@@ -169,26 +169,6 @@ class DiffusionCondensation:
             Smoothing parameter for the kernel calculation.
         """
         return rbf_kernel(X, gamma=1.0 / epsilon)
-
-
-def get_kernel_fn(kernel):
-    """Return kernel function as callable."""
-    if kernel == 'gaussian':
-        # Default kernel; handled by the functor
-        return None
-    elif kernel == 'laplacian':
-        def kernel_fn(X, epsilon):
-            return laplacian_kernel(X, gamma=1.0 / epsilon)
-        return kernel_fn
-    elif kernel == 'constant':
-        def kernel_fn(X, epsilon):
-            n = X.shape[0]
-            K = np.full((n, n), 1.0 / epsilon)
-            return K
-        return kernel_fn
-
-    # Fall back to default kernel.
-    return None
 
 
 if __name__ == '__main__':
