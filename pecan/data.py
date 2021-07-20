@@ -3,6 +3,29 @@
 import numpy as np
 
 
+def simplex(N, **kwargs):
+    """Generate set of equidistant points."""
+    X = []
+    C = np.linspace(0, 1, N)
+
+    for i in range(N - 1):
+        x = np.zeros((N - 1))
+        x[i] = 1
+
+        X.append(x)
+
+    # Last point is a little bit icky...
+    X.append(
+        (np.ones((N - 1)) - np.sqrt(N)) / (N - 1)
+    )
+
+    # Make everything uniform and scale distances
+    X = np.asarray(X)
+    X /= np.sqrt(2)
+
+    return X, C
+
+
 def moons(N, **kwargs):
     """Generate moons data set with labels."""
     from sklearn.datasets import make_moons
