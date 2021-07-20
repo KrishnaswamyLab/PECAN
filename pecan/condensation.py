@@ -336,6 +336,7 @@ if __name__ == '__main__':
     # Just use the user-provided output path.
     else:
         output_filename = args.output
+        os.makedirs(os.path.dirname(output_filename), exist_ok=True)
 
     logging.info(f'Storing results in {output_filename}')
     np.savez(output_filename, **data)
