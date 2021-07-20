@@ -227,6 +227,13 @@ if __name__ == '__main__':
              'generated automatically) or output filename.'
     )
 
+    parser.add_argument(
+        '-s', '--seed',
+        type=int,
+        default=None,
+        help='Set random seed to ensure reproducibility.'
+    )
+
     # TODO: implement effects of this
     parser.add_argument(
         '--noise',
@@ -268,9 +275,12 @@ if __name__ == '__main__':
 
     logging.info(f'Using generator routine {generator}')
 
-    # Not the best way to seed the random generator, but this ensures
-    # that we obtain different results per run.
-    seed = int(datetime.datetime.now().timestamp())
+    if args.seed is None:
+        # Not the best way to seed the random generator, but this
+        # ensures that we obtain different results per run.
+        seed = int(datetime.datetime.now().timestamp())
+    else:
+        seed = args.seed
 
     X, C = generator(
         args.num_samples,
