@@ -26,10 +26,16 @@ def simplex(N, **kwargs):
     return X, C
 
 
+def blobs(N, **kwargs):
+    """Generate set of Gaussian blobs."""
+    from sklearn.datasets import make_blobs
+    return make_blobs(N, random_state=kwargs['random_state'])
+
+
 def moons(N, **kwargs):
     """Generate moons data set with labels."""
     from sklearn.datasets import make_moons
-    return make_moons(N, random_state=1990)
+    return make_moons(N, random_state=kwargs['random_state'])
 
 
 def nested_circles(N, **kwargs):
