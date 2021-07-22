@@ -116,6 +116,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('INPUT')
 
+    parser.add_argument(
+        '-o', '--output',
+        default='/tmp',
+        type=str,
+        help='Output directory'
+    )
+
     args = parser.parse_args()
 
     # Load data and check whether all keys are available. We require
@@ -126,6 +133,6 @@ if __name__ == '__main__':
     prefix = os.path.basename(args.INPUT)
     prefix = os.path.splitext(prefix)[0]
 
-    extract_point_clouds(data, parsed_keys, prefix, '/tmp')
-    extract_diffusion_homology(data, parsed_keys, prefix, '/tmp')
-    extract_persistence_points(data, parsed_keys, prefix, '/tmp')
+    extract_point_clouds(data, parsed_keys, prefix, args.output)
+    extract_diffusion_homology(data, parsed_keys, prefix, args.output)
+    extract_persistence_points(data, parsed_keys, prefix, args.output)
