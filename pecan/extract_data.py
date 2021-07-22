@@ -135,4 +135,8 @@ if __name__ == '__main__':
 
     extract_point_clouds(data, parsed_keys, prefix, args.output)
     extract_diffusion_homology(data, parsed_keys, prefix, args.output)
-    extract_persistence_points(data, parsed_keys, prefix, args.output)
+
+    try:
+        extract_persistence_points(data, parsed_keys, prefix, args.output)
+    except AssertionError:
+        pass
