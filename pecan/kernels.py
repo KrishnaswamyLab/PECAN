@@ -8,6 +8,41 @@ from sklearn.metrics.pairwise import laplacian_kernel
 from sklearn.metrics.pairwise import euclidean_distances
 
 
+def alpha_decaying_kernel(X, epsilon, alpha=10):
+    r"""Calculate the $\alpha$-decaying kernel function.
+
+    Calculate a simplified variant of the $\alpha$-decaying kernel as
+    described by Moon et al. [1]. In contrast to the original
+    description, this kernel only uses a *single* local density estimate
+    instead of per-point estimates.
+
+    Parameters
+    ----------
+    X : np.array of size (n, n)
+        Input data set.
+
+    epsilon : float
+        Standard deviation or local scale parameter. This parameter is
+        globally used and does *not* depend on the local neighbourhood
+        of a point.
+
+    alpha : float
+        Value for the decay.
+
+    Returns
+    -------
+    Kernel matrix.
+
+    References
+    -----
+    [1]: Moon et al., Visualizing Structure and Transitions for
+    Biological Data Exploration, Nature Biotechnology 37, pp. 1482–1492,
+    2019. URL: https://www.nature.com/articles/s41587-019-0336-3
+    """
+    D = euclidean_distances(X)
+    return np.exp(-(D / epsilon)**alpha)
+
+
 def get_kernel_fn(kernel):
     """Return kernel function as callable."""
     if kernel == 'gaussian':
