@@ -55,11 +55,15 @@ def calculate_contraction_constant(dist):
 def calculate_neighbourhood_consistency(dist, tau=1e-16):
     """Calculate neighbourhood consistency over time."""
     neighbourhoods = []
+    masks = []
     for D in dist:
         m = D < tau
         neighbourhoods.append(np.sum(m))
+        masks.append(m.ravel())
 
-    return np.max(np.diff(neighbourhoods) >= 0)
+    masks = np.asarray(masks).astype(int)
+
+    return np.min(np.min(np.diff(masks, axis=0), axis=0)) >= 0
 
 
 if __name__ == '__main__':
