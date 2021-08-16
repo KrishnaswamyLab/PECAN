@@ -38,8 +38,12 @@ def calculate_contraction_constant(dist):
     for i in range(dist[0].shape[0]):
         for j in range(i + 1, dist[0].shape[0]):
             with np.errstate(divide='ignore', invalid='ignore'):
-                pairwise_scale_factors = [
+                pairwise_scale_factors = np.asarray([
                     d2[i, j] / d1[i, j] for d1, d2 in zip(dist, dist[1:])
+                ])
+
+                pairwise_scale_factors = pairwise_scale_factors[
+                    np.isfinite(pairwise_scale_factors)
                 ]
 
             scale_factor = np.nanmax(pairwise_scale_factors)
@@ -60,5 +64,13 @@ if __name__ == '__main__':
         name, tokens = parse_filename(filename)
         distances = process_file(filename)
 
-        data[name] = distances
-        calculate_contraction_constant(data[name])
+        data[name] = calculate_contraction_constant(
+            distances
+        )
+
+    data = pd.DataFrame.from_dict(
+        data,
+        orient='index',
+        columns='L'
+    )
+    print(data)
