@@ -52,7 +52,7 @@ def calculate_contraction_constant(dist):
     return np.nanmax(all_scale_factors)
 
 
-def calculate_neighbourhood_consistency(dist, tau=1e-16):
+def calculate_neighbourhood_consistency(dist, tau=1e-8):
     """Calculate neighbourhood consistency over time."""
     neighbourhoods = []
     masks = []
@@ -62,7 +62,6 @@ def calculate_neighbourhood_consistency(dist, tau=1e-16):
         masks.append(m.ravel())
 
     masks = np.asarray(masks).astype(int)
-
     return np.min(np.min(np.diff(masks, axis=0), axis=0)) >= 0
 
 
