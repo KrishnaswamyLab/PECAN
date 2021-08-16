@@ -32,6 +32,22 @@ def process_file(filename):
     return result
 
 
+def calculate_contraction_constant(dist):
+    """Calculate overall contraction constant over all time steps."""
+    all_scale_factors = []
+    for i in range(dist[0].shape[0]):
+        for j in range(i + 1, dist[0].shape[0]):
+            with np.errstate(divide='ignore', invalid='ignore'):
+                pairwise_scale_factors = [
+                    d2[i, j] / d1[i, j] for d1, d2 in zip(dist, dist[1:])
+                ]
+
+            scale_factor = np.nanmax(pairwise_scale_factors)
+            all_scale_factors.append(scale_factor)
+
+    return np.nanmax(all_scale_factors)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('INPUT', nargs='+', help='Input file(s)')
@@ -45,3 +61,4 @@ if __name__ == '__main__':
         distances = process_file(filename)
 
         data[name] = distances
+        calculate_contraction_constant(data[name])
