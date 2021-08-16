@@ -52,6 +52,16 @@ def calculate_contraction_constant(dist):
     return np.nanmax(all_scale_factors)
 
 
+def calculate_neighbourhood_consistency(dist, tau=1e-16):
+    """Calculate neighbourhood consistency over time."""
+    neighbourhoods = []
+    for D in dist:
+        m = D < tau
+        neighbourhoods.append(np.sum(m))
+
+    return np.max(np.diff(neighbourhoods) >= 0)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('INPUT', nargs='+', help='Input file(s)')
@@ -64,13 +74,14 @@ if __name__ == '__main__':
         name, tokens = parse_filename(filename)
         distances = process_file(filename)
 
-        data[name] = calculate_contraction_constant(
-            distances
-        )
+        data[name] = [
+            calculate_contraction_constant(distances),
+            calculate_neighbourhood_consistency(distances)
+        ]
 
     data = pd.DataFrame.from_dict(
         data,
         orient='index',
-        columns='L'
+        columns=['L', 'C'],
     )
     print(data)
