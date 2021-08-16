@@ -22,9 +22,14 @@ def process_file(filename):
         return None
 
     X = make_tensor(data, parsed_keys['data'])
-    D = pairwise_distances(X)
 
-    return D
+    result = []
+
+    for X_ in np.rollaxis(X, axis=2):
+        D = pairwise_distances(X_)
+        result.append(D)
+
+    return result
 
 
 if __name__ == '__main__':
@@ -33,10 +38,10 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    data = []
+    data = dict()
 
     for filename in args.INPUT:
         name, tokens = parse_filename(filename)
-        D = process_file(filename)
+        distances = process_file(filename)
 
-        data.append(D)
+        data[name] = distances
