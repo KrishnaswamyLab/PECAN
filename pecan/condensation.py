@@ -308,6 +308,29 @@ if __name__ == '__main__':
     logging.info(f'Number of samples: {args.num_samples}')
     logging.info(f'Epsilon: {args.epsilon:.4f}')
 
+    # User specified an existing directory, so we generate a filename
+    # automatically and store everything in it.
+    if os.path.isdir(args.output):
+        # Store data set. The name of output file is generated automatically
+        # to account for conditions of the environment.
+
+        output_filename = generate_output_filename(args, seed)
+        output_filename = os.path.join(args.output, output_filename)
+
+    # Just use the user-provided output path.
+    else:
+        output_filename = args.output
+        os.makedirs(os.path.dirname(output_filename), exist_ok=True)
+
+    # Check early on whether we have to do something or not.
+    if os.path.exists(output_filename) and not args.force:
+        logging.info(
+            'Refusing to overwrite existing file. Use `--force` to change '
+            'this behaviour.'
+        )
+
+        sys.exit(-1)
+
     # Get default callbacks if user did not provide anything else. Feel
     # free to change this.
     if args.callbacks is None:
@@ -340,25 +363,5 @@ if __name__ == '__main__':
     )
     data = diffusion_condensation(X, args.epsilon)
 
-    # User specified an existing directory, so we generate a filename
-    # automatically and store everything in it.
-    if os.path.isdir(args.output):
-        # Store data set. The name of output file is generated automatically
-        # to account for conditions of the environment.
-
-        output_filename = generate_output_filename(args, seed)
-        output_filename = os.path.join(args.output, output_filename)
-
-    # Just use the user-provided output path.
-    else:
-        output_filename = args.output
-        os.makedirs(os.path.dirname(output_filename), exist_ok=True)
-
-    if not os.path.exist(output_filename) or args.force:
-        logging.info(f'Storing results in {output_filename}')
-        np.savez(output_filename, **data)
-    else:
-        logging.info(
-            'Refusing to overwrite existing file. Use `--force` to change '
-            'this behaviour.'
-        )
+    logging.info(f'Storing results in {output_filename}')
+    np.savez(output_filename, **data)
