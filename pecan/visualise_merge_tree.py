@@ -15,7 +15,7 @@ from utilities import parse_keys
 
 def make_tree(edges):
     """Create tree from edges."""
-    G = nx.Graph()
+    G = nx.DiGraph()
 
     for t, u, v in edges:
         G.add_edge(u, v, time=t)
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     tree = make_tree(edges)
     pos = nx.nx_pydot.graphviz_layout(tree, prog='dot')
 
-    nx.draw(tree, pos=pos)
+    nx.draw(tree, pos=pos, with_labels=True)
 
     plt.tight_layout()
     plt.show()
