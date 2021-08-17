@@ -220,6 +220,12 @@ if __name__ == '__main__':
     )
 
     parser.add_argument(
+        '-f', '--force',
+        action='store_true',
+        help='If set, overwrites existing output files.'
+    )
+
+    parser.add_argument(
         '-o', '--output',
         default='.',
         type=str,
@@ -348,5 +354,11 @@ if __name__ == '__main__':
         output_filename = args.output
         os.makedirs(os.path.dirname(output_filename), exist_ok=True)
 
-    logging.info(f'Storing results in {output_filename}')
-    np.savez(output_filename, **data)
+    if not os.path.exist(output_filename) or args.force:
+        logging.info(f'Storing results in {output_filename}')
+        np.savez(output_filename, **data)
+    else:
+        logging.info(
+            'Refusing to overwrite existing file. Use `--force` to change '
+            'this behaviour.'
+        )
