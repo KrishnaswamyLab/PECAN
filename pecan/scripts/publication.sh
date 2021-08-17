@@ -9,7 +9,7 @@ SEED=2021
 N_POINTS=128
 DATASETS=(blobs hyperuniform_circle petals simplex)
 
-KERNELS=(box gaussian laplacian)
+KERNELS=(alpha box gaussian laplacian)
 
 for DATASET in "${DATASETS[@]}"; do
   for KERNEL in "${KERNELS[@]}"; do

@@ -215,7 +215,7 @@ if __name__ == '__main__':
         '-k', '--kernel',
         default='gaussian',
         type=str,
-        choices=['gaussian', 'laplacian', 'constant', 'box'],
+        choices=['alpha', 'gaussian', 'laplacian', 'constant', 'box'],
         help='Sets kernel to use for diffusion condensation process.'
     )
 

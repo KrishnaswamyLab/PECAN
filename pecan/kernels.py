@@ -72,6 +72,10 @@ def get_kernel_fn(kernel):
 
             return K
         return kernel_fn
+    elif kernel == 'alpha':
+        def kernel_fn(X, epsilon):
+            return alpha_decaying_kernel(X, epsilon)
+        return kernel_fn
 
     warnings.warn(
         f'Falling back to default kernel instead of using kernel "{kernel}".'
