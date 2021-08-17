@@ -186,16 +186,21 @@ class CalculateDiffusionHomology(Callback):
 
         for i1, i2 in np.transpose(np.nonzero(D < self.threshold)):
             if i1 > i2 and self.uf.find(i1) != self.uf.find(i2):
+                younger, older = self.uf.find(i1), self.uf.find(i2)
+
+                # Store edge; the order does not really matter here
+                # but it should be consistent.
+                if younger < older:
+                    younger, older = older, younger
+
+                self.edges.append((t, younger, older))
+
                 self.uf.merge(i1, i2)
 
                 # On the connected component level, the addition of
                 # this pair is easy because *everything* is created
                 # at t = 0.
                 self.persistence_pairs.append((0, t))
-
-                # Store edge; the order does not really matter here
-                # but it should be consistent.
-                self.edges.append((t, i1, i2))
 
     def __repr__(self):
         """Return name of callback."""
