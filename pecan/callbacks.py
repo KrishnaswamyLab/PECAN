@@ -175,6 +175,7 @@ class CalculateDiffusionHomology(Callback):
             closer than this threshold, it will be merged.
         """
         self.persistence_pairs = []
+        self.edges = []
         self.uf = None
         self.threshold = threshold
 
@@ -192,6 +193,10 @@ class CalculateDiffusionHomology(Callback):
                 # at t = 0.
                 self.persistence_pairs.append((0, t))
 
+                # Store edge; the order does not really matter here
+                # but it should be consistent.
+                self.edges.append((t, i1, i2))
+
     def __repr__(self):
         """Return name of callback."""
         return 'CalculateDiffusionHomology'
@@ -201,7 +206,8 @@ class CalculateDiffusionHomology(Callback):
         data.update({
             'diffusion_homology_persistence_pairs': np.asarray(
                 self.persistence_pairs
-            )
+            ),
+            'diffusion_homology_edges': np.asarray(self.edges)
         })
 
         return data
