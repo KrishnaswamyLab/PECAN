@@ -4,6 +4,7 @@ import argparse
 import sys
 
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 import numpy as np
 
@@ -76,7 +77,9 @@ if __name__ == '__main__':
     edges = data['diffusion_homology_edges']
     Z = make_linkage_matrix(edges, n_vertices)
 
-    dendrogram(Z)
+    dendrogram(Z, no_labels=True)
+
+    sns.despine(bottom=True, offset=5)
 
     plt.tight_layout()
     plt.show()
