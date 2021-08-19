@@ -74,6 +74,18 @@ if __name__ == '__main__':
     assert 'diffusion_homology_edges' in parsed_keys, \
         'Require "diffusion_homology_edges" key'
 
+    plt.switch_backend('pgf')
+
+    import matplotlib
+
+    matplotlib.rcParams.update({
+        'pgf.texsystem': 'pdflatex',
+        'text.usetex': True,
+        'pgf.rcfonts': False,
+    })
+
+    fig, ax = plt.subplots(figsize=(10, 2))
+
     edges = data['diffusion_homology_edges']
     Z = make_linkage_matrix(edges, n_vertices)
 
@@ -81,5 +93,7 @@ if __name__ == '__main__':
 
     sns.despine(bottom=True, offset=5)
 
+    plt.ylabel('$t$')
     plt.tight_layout()
-    plt.show()
+
+    plt.savefig('/tmp/Dendrogram.pgf')
