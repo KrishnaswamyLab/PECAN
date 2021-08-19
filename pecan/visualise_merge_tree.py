@@ -84,7 +84,7 @@ if __name__ == '__main__':
         'pgf.rcfonts': False,
     })
 
-    fig, ax = plt.subplots(figsize=(10, 2))
+    fig, ax = plt.subplots(figsize=(4, 0.8))
 
     edges = data['diffusion_homology_edges']
     Z = make_linkage_matrix(edges, n_vertices)
