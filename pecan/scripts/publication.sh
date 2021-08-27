@@ -14,11 +14,21 @@ KERNELS=(alpha box gaussian laplacian)
 for DATASET in "${DATASETS[@]}"; do
   for KERNEL in "${KERNELS[@]}"; do
     echo "Running condensation for $DATASET with '$KERNEL' kernel..."
-    poetry run python condensation.py --kernel ${KERNEL}            \
-                                      --data ${DATASET}             \
-                                      -s ${SEED}                    \
-                                      -n ${N_POINTS}                \
-                                      -c CalculateDiffusionHomology \
-                                      -o data/publication/${DATASET}_${KERNEL}_n${N_POINTS}.npz 
+    if [[ $DATASET = "double_annulus" ]]; then
+      poetry run python condensation.py --kernel ${KERNEL}                                         \
+                                        --data ${DATASET}                                          \
+                                        -s ${SEED}                                                 \
+                                        -n ${N_POINTS}                                             \
+                                        -c CalculateDiffusionHomology CalculatePersistentHomology  \
+                                        -o data/publication/${DATASET}_${KERNEL}_n${N_POINTS}.npz 
+
+    else
+      poetry run python condensation.py --kernel ${KERNEL}            \
+                                        --data ${DATASET}             \
+                                        -s ${SEED}                    \
+                                        -n ${N_POINTS}                \
+                                        -c CalculateDiffusionHomology \
+                                        -o data/publication/${DATASET}_${KERNEL}_n${N_POINTS}.npz 
+    fi
   done
 done
