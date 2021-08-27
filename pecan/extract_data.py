@@ -50,6 +50,17 @@ def extract_diffusion_homology(data, parsed_keys, prefix, out_dir):
     T = X.shape[-1]
     pd = data['diffusion_homology_persistence_pairs']
 
+    out = os.path.join(
+        out_dir, prefix + '_intrinsic_diffusion_homology.txt'
+    )
+
+    logging.info(f'Storing intrinsic diffusion homology in {out}...')
+
+    with open(out, 'w') as f:
+        for i, (c, d) in enumerate(pd):
+            print(f'{c:.8f}\t{i}\n'
+                  f'{d:.8f}\t{i}\n', file=f)
+
     total_persistence = [
         np.sum(np.diff(pd[pd[:, 1] <= t])) for t in range(T)
     ]
