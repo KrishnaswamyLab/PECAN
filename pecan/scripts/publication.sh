@@ -7,7 +7,7 @@
 SEED=2021
 
 N_POINTS=128
-DATASETS=(blobs hyperuniform_circle petals simplex)
+DATASETS=(blobs double_annulus hyperuniform_circle petals simplex)
 
 KERNELS=(alpha box gaussian laplacian)
 
