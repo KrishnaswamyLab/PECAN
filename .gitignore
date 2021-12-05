@@ -1,13 +1,13 @@
 *.npz
 *.pyc
 *.swp
-
 *.lock
 
-data/
+.DS_Store
 
 Notebooks/.ipynb_checkpoints/
-
 __pycache__/
+.venv/
+.imdone/
 
-.DS_Store
+data/
