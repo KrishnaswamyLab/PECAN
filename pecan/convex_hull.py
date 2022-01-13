@@ -39,7 +39,8 @@ if __name__ == '__main__':
 
         # Generate lines for the convex hull (in TikZ format)
         output = '\\draw '
-        for x, y in zip(vertices, vertices[1:]):
+        for v in vertices:
+            x, y = X[v, :]
             output += f'({x:.02f},{y:.02f}) -- '
 
         output += 'cycle;'
