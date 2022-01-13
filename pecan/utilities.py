@@ -220,7 +220,10 @@ def parse_keys(data):
 
 def generate_output_filename(args, seed, suffix='.npz'):
     """Generate output filename string from CLI arguments."""
-    result = f'{args.data}_n{args.num_samples}'
+    # Ensures that even if client uses a filename instead of a generator
+    # function, the output name will not contain multiple extensions.
+    name = os.path.splitext(os.path.basename(args.data))[0]
+    result = f'{name}_n{args.num_samples}'
 
     if args.data == 'annulus':
         result += f'_r{args.r}_R{args.R}'
