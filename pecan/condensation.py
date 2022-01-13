@@ -195,6 +195,7 @@ if __name__ == '__main__':
         '-d', '--data',
         default='hyperuniform_ellipse',
         type=str,
+        help='Select data set generator routine or filename to load.'
     )
 
     parser.add_argument(
@@ -275,12 +276,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     this = sys.modules[__name__]
 
-    # Search for a generator routine, as requested by the client. This
-    # does not fail gracefully.
-    generator = getattr(data, args.data)
-
-    logging.info(f'Using generator routine {generator}')
-
     if args.seed is None:
         # Not the best way to seed the random generator, but this
         # ensures that we obtain different results per run.
@@ -288,13 +283,25 @@ if __name__ == '__main__':
     else:
         seed = args.seed
 
-    X, C = generator(
-        args.num_samples,
-        random_state=seed,
-        r=args.r,
-        R=args.R,
-        beta=args.beta,
-    )
+    # Client specified a file instead of generator function. Let's use
+    # this. The unfortunate issue with this is that generators must be
+    # named differently than files...
+    if os.path.isfile(args.data):
+        X = np.loadtxt(args.data)
+    else:
+        # Search for a generator routine, as requested by the client. This
+        # does not fail gracefully.
+        generator = getattr(data, args.data)
+
+        logging.info(f'Using generator routine {generator}')
+
+        X, C = generator(
+            args.num_samples,
+            random_state=seed,
+            r=args.r,
+            R=args.R,
+            beta=args.beta,
+        )
 
     if np.isnan(args.epsilon):
         args.epsilon = estimate_epsilon(X)
@@ -320,7 +327,10 @@ if __name__ == '__main__':
     # Just use the user-provided output path.
     else:
         output_filename = args.output
-        os.makedirs(os.path.dirname(output_filename), exist_ok=True)
+
+        # Check whether we have to create a directory.
+        if (dirname := os.path.dirname(output_filename)):
+            os.makedirs(dirname, exist_ok=True)
 
     # Check early on whether we have to do something or not.
     if os.path.exists(output_filename) and not args.force:
