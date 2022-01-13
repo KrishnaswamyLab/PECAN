@@ -7,27 +7,38 @@ the point cloud.
 """
 
 import argparse
+import sys
 
 import pandas as pd
 
 from scipy.spatial import ConvexHull
+from scipy.spatial.qhull import QhullError
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('INPUT', help='Input file')
+    parser.add_argument('INPUT', help='Input file(s)', nargs='+')
 
     args = parser.parse_args()
 
-    X = pd.read_csv(args.INPUT, sep='\t').to_numpy()
-    hull = ConvexHull(X)
-    vertices = hull.vertices
+    for filename in args.INPUT:
+        X = pd.read_csv(filename, sep='\t').to_numpy()
+        try:
+            hull = ConvexHull(X)
 
-    # Generate lines for the convex hull (in TikZ format)
+        # Don't do anything for these files
+        except QhullError:
+            continue
 
-    output = '\\draw '
-    for x, y in zip(vertices, vertices[1:]):
-        output += f'({x:.02f},{y:.02f}) -- '
+        vertices = hull.vertices
 
-    output += 'cycle;'
-    print(output)
+        print(filename, file=sys.stderr)
+
+        # Generate lines for the convex hull (in TikZ format)
+
+        output = '\\draw '
+        for x, y in zip(vertices, vertices[1:]):
+            output += f'({x:.02f},{y:.02f}) -- '
+
+        output += 'cycle;'
+        print(output)
