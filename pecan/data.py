@@ -15,9 +15,7 @@ def simplex(N, **kwargs):
         X.append(x)
 
     # Last point is a little bit icky...
-    X.append(
-        (np.ones((N - 1)) - np.sqrt(N)) / (N - 1)
-    )
+    X.append((np.ones((N - 1)) - np.sqrt(N)) / (N - 1))
 
     # Make everything uniform and scale distances
     X = np.asarray(X)
@@ -29,25 +27,28 @@ def simplex(N, **kwargs):
 def blobs(N, **kwargs):
     """Generate set of Gaussian blobs."""
     from sklearn.datasets import make_blobs
-    return make_blobs(N, random_state=kwargs['random_state'])
+
+    return make_blobs(N, random_state=kwargs["random_state"])
 
 
 def moons(N, **kwargs):
     """Generate moons data set with labels."""
     from sklearn.datasets import make_moons
-    return make_moons(N, random_state=kwargs['random_state'])
+
+    return make_moons(N, random_state=kwargs["random_state"])
 
 
 def nested_circles(N, **kwargs):
     """Generate nested circles with labels."""
     from sklearn.datasets import make_circles
-    return make_circles(N, random_state=kwargs['random_state'])
+
+    return make_circles(N, random_state=kwargs["random_state"])
 
 
 def barbell(N, beta=1, **kwargs):
     """Generate uniformly-sampled 2-D barbelll with colours."""
-    if kwargs.get('random_state'):
-        np.random.seed(kwargs['random_state'])
+    if kwargs.get("random_state"):
+        np.random.seed(kwargs["random_state"])
 
     X = []
     C = []
@@ -74,17 +75,14 @@ def barbell(N, beta=1, **kwargs):
 
 def double_annulus(N, **kwargs):
     """Sample N points from a double annulus."""
-    if kwargs.get('random_state'):
-        np.random.seed(kwargs['random_state'])
+    if kwargs.get("random_state"):
+        np.random.seed(kwargs["random_state"])
 
     X = []
     C = []
     for i in range(N):
         while True:
-            t = [
-                    np.random.uniform(-50, 50, 1)[0],
-                    np.random.uniform(-50, 140, 1)[0]
-            ]
+            t = [np.random.uniform(-50, 50, 1)[0], np.random.uniform(-50, 140, 1)[0]]
 
             d = np.sqrt(np.dot(t, t))
             if d <= 50 and d >= 20:
@@ -128,12 +126,10 @@ def annulus(N, r, R, **kwargs):
     Array of (x, y) coordinates.
     """
     if r >= R:
-        raise RuntimeError(
-            'Inner radius must be less than or equal to outer radius'
-        )
+        raise RuntimeError("Inner radius must be less than or equal to outer radius")
 
-    if kwargs.get('random_state'):
-        np.random.seed(kwargs['random_state'])
+    if kwargs.get("random_state"):
+        np.random.seed(kwargs["random_state"])
 
     thetas = np.random.uniform(0, 2 * np.pi, N)
 
@@ -216,7 +212,7 @@ def petals(N, **kwargs):
     Y = []  # auxiliary array (points on outer circle)
     C = []
 
-    assert N > 4, 'Require more than four data points'
+    assert N > 4, "Require more than four data points"
 
     # Number of 'petals' to point into the data set. This is required to
     # ensure that the full space is used.
@@ -232,9 +228,7 @@ def petals(N, **kwargs):
 
     for i, x in enumerate(Y):
         for theta in thetas:
-            X.append(np.asarray(
-                [r * np.cos(theta) - x[0], r * np.sin(theta) - x[1]])
-            )
+            X.append(np.asarray([r * np.cos(theta) - x[0], r * np.sin(theta) - x[1]]))
 
             # Indicates that this point belongs to the $i$th circle.
             C.append(i)
@@ -244,8 +238,8 @@ def petals(N, **kwargs):
 
 def poisson_process(N, **kwargs):
     """Generate points based on a Poisson process."""
-    if kwargs.get('random_state'):
-        np.random.seed(kwargs['random_state'])
+    if kwargs.get("random_state"):
+        np.random.seed(kwargs["random_state"])
 
     n = np.random.poisson(N)
     X = np.random.rand(n, 2)
@@ -254,8 +248,72 @@ def poisson_process(N, **kwargs):
     return X, C
 
 
+def const_curvature_disk(N, K, **kwargs):
+    """Sample points on manifolds of constant curvature."""
+
+    if np.isclose(K, 0):
+        return euclidean_disk(N, **kwargs)
+    else:
+        return spherical_cap(N, K, **kwargs) if K > 0 else hyperbolic_disk(N, K, **kwargs)
+
+
+def euclidean_disk(N, **kwargs):
+    """Sample points on a unit Euclidean disk."""
+
+    if kwargs.get("random_state"):
+        np.random.seed(kwargs["random_state"])
+
+    u = np.random.uniform(0, 1, N)
+    r = np.sqrt(u)
+    theta = np.random.uniform(0, 2 * np.pi, N)
+    x = np.multiply(r, np.cos(theta))
+    y = np.multiply(r, np.sin(theta))
+    C = np.linspace(0, 1, N)
+
+    return np.vstack([x, y]).T, C
+
+
+def spherical_cap(N, K, **kwargs):
+    """Sample points from a unit disk on the surface of a sphere with const. positive curvature K."""
+
+    if kwargs.get("random_state"):
+        np.random.seed(kwargs["random_state"])
+
+    assert K > 0
+
+    u = np.random.uniform(0, 1, N)
+    r = np.multiply(np.sqrt(u), np.sin(np.sqrt(K) / 2.0))
+    r = np.multiply(2.0 / np.sqrt(K), np.arcsin(r))
+    theta = np.random.uniform(0, 2 * np.pi, N)
+    x = np.multiply(r, np.cos(theta))
+    y = np.multiply(r, np.sin(theta))
+    C = np.linspace(0, 1, N)
+
+    return np.vstack([x, y]).T, C
+
+
+def hyperbolic_disk(N, K, **kwargs):
+    """Sample points from a hyperbolic disk (using the Poincaré metric) with const. negative curvature K."""
+
+    if kwargs.get("random_state"):
+        np.random.seed(kwargs["random_state"])
+
+    assert K < 0
+
+    u = np.random.uniform(0, 1, N)
+    r = np.multiply(np.sqrt(u), np.sinh(np.sqrt(-K) / 2.0))
+    r = np.multiply(2.0 / np.sqrt(-K), np.arcsinh(r))
+    theta = np.random.uniform(0, 2 * np.pi, N)
+    x = np.multiply(r, np.cos(theta))
+    y = np.multiply(r, np.sin(theta))
+    C = np.linspace(0, 1, N)
+
+    return np.vstack([x, y]).T, C
+
+
 def torus(N, inner_radius=3, outer_radius=10):
     """Generate n-point hollow torus with one hole."""
+
     # begin by generating a hollow cylinder
     # from N random uniform points, normalized so that y^2 + z^2 = inner_radius^2
     X = np.random.rand(N, 3) * 2 - 1
@@ -287,6 +345,7 @@ def sphere(N, dim=3):
         dim (int, optional): Dimension of sphere. Defaults to 3.
     """
     import tadasets
+
     dsphere = tadasets.dsphere(
         n=N, d=dim - 1, r=1
     )  # TODO: Can also specify the amount of noise to add to the sphere

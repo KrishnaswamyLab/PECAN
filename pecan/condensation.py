@@ -273,6 +273,14 @@ if __name__ == '__main__':
              'whenever it is appropriate.'
     )
 
+    parser.add_argument(
+        '-K',
+        default=0.0,
+        type=float,
+        help='Curvature for sampling points on disks of const. curvature. Will be used '
+             'whenever it is appropriate.'
+    )
+
     args = parser.parse_args()
     this = sys.modules[__name__]
 
@@ -300,6 +308,7 @@ if __name__ == '__main__':
             random_state=seed,
             r=args.r,
             R=args.R,
+            K=args.K,
             beta=args.beta,
         )
 
