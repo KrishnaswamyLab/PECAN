@@ -5,15 +5,15 @@
 
 .DS_Store
 
-Notebooks/.ipynb_checkpoints/
+*/.ipynb_checkpoints/
 
 __pycache__/
 .pytest_cache
 
 .venv
-.imdone
+.vscode
 
+.imdone
 imdone-tasks.md
-.ipynb_checkpoints
 
 data/
