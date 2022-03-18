@@ -222,7 +222,8 @@ class CalculateDiffusionHomology(Callback):
             'diffusion_homology_persistence_pairs': np.asarray(
                 self.persistence_pairs
             ),
-            'diffusion_homology_edges': np.asarray(self.edges)
+            'diffusion_homology_edges': np.asarray(self.edges),
+            'diffusion_homology_distances': self.distances
         })
 
         return data
