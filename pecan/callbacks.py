@@ -186,7 +186,8 @@ class CalculateDiffusionHomology(Callback):
             self.uf = UnionFind(X.shape[0])
 
         if self.distances is None:
-            self.distances = np.zeros_like(D)
+            self.distances = np.full_like(D, np.inf)
+            np.fill_diagonal(self.distances, 0.0)
 
         for i1, i2 in np.transpose(np.nonzero(D < self.threshold)):
             if i1 > i2 and self.uf.find(i1) != self.uf.find(i2):
