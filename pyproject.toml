@@ -31,6 +31,7 @@ pydiffmap = "^0.2.0"
 tqdm = "^4.61.2"
 phate = "^1.0.7"
 ipympl = "^0.7.0"
+giotto-tda = "^0.5.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^4.6"
