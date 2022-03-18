@@ -29,9 +29,12 @@ if __name__ == '__main__':
     D = data['diffusion_homology_distances']
     pairs = data['diffusion_homology_persistence_pairs']
 
+    np.savetxt('/tmp/D.txt', D, fmt='%.4f')
+
     vr = VietorisRipsPersistence(
         metric='precomputed',
-        reduced_homology=True
+        reduced_homology=True,
+        homology_dimensions=(0, 1)
     )
     diagram = vr.fit_transform([D])[0]
 
@@ -41,3 +44,6 @@ if __name__ == '__main__':
 
     assert diff == 0.0, \
         'Something is wrong: diffusion homology pairs do not match'
+
+    # Only print cycles for now...should generalise, though?
+    print(diagram[diagram[:, 2] == 1][:, :2])

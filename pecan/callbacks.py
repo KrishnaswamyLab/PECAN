@@ -190,6 +190,14 @@ class CalculateDiffusionHomology(Callback):
             np.fill_diagonal(self.distances, 0.0)
 
         for i1, i2 in np.transpose(np.nonzero(D < self.threshold)):
+
+            # Update distances of the two pairs. This corresponds to
+            # their diffusion merge distance, i.e. the first time at
+            # which the points should be merged.
+            if not np.isfinite(self.distances[i1, i2]):
+                self.distances[i1, i2] = t
+                self.distances[i2, i1] = t
+
             if i1 > i2 and self.uf.find(i1) != self.uf.find(i2):
                 younger, older = self.uf.find(i1), self.uf.find(i2)
 
@@ -206,12 +214,6 @@ class CalculateDiffusionHomology(Callback):
                 # this pair is easy because *everything* is created
                 # at t = 0.
                 self.persistence_pairs.append((0, t))
-
-                # Update distances of the two pairs. This corresponds to
-                # their diffusion merge distance, i.e. the first time at
-                # which the points should be merged.
-                self.distances[i1, i2] = t
-                self.distances[i2, i1] = t
 
     def __repr__(self):
         """Return name of callback."""
