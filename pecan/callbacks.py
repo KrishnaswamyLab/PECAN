@@ -178,11 +178,15 @@ class CalculateDiffusionHomology(Callback):
         self.edges = []
         self.uf = None
         self.threshold = threshold
+        self.distances = None
 
     def __call__(self, t, X, P, D):
         """Update function for this functor."""
-        if not self.uf:
+        if self.uf is None:
             self.uf = UnionFind(X.shape[0])
+
+        if self.distances is None:
+            self.distances = np.zeros_like(D)
 
         for i1, i2 in np.transpose(np.nonzero(D < self.threshold)):
             if i1 > i2 and self.uf.find(i1) != self.uf.find(i2):
@@ -201,6 +205,12 @@ class CalculateDiffusionHomology(Callback):
                 # this pair is easy because *everything* is created
                 # at t = 0.
                 self.persistence_pairs.append((0, t))
+
+                # Update distances of the two pairs. This corresponds to
+                # their diffusion merge distance, i.e. the first time at
+                # which the points should be merged.
+                self.distances[i1, i2] = t
+                self.distances[i2, i1] = t
 
     def __repr__(self):
         """Return name of callback."""
