@@ -2,12 +2,12 @@ DATASET=$1
 N_POINTS=$2
 KERNEL=gaussian
 SEED=23
+SCRIPT=analyse_merge_thresholds.py
 
-poetry run python condensation.py --kernel ${KERNEL}            \
+poetry run python ${SCRIPT}       --kernel ${KERNEL}            \
                                   --data ${DATASET}             \
                                   -s ${SEED}                    \
                                   -n ${N_POINTS}                \
-                                  -c CalculateDiffusionHomology \
                                   -o /tmp/test.npz --force
 
 poetry run python analyse_intrinsic_distance.py /tmp/test.npz
