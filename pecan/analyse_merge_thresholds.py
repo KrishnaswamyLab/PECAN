@@ -10,6 +10,8 @@ import numpy as np
 
 import data
 
+from sklearn.metrics import pairwise_distances
+
 from callbacks import CalculateDiffusionHomology
 
 from functor import DiffusionCondensation
@@ -31,14 +33,6 @@ if __name__ == '__main__':
     )
 
     parser = argparse.ArgumentParser()
-
-    parser.add_argument(
-        '-c', '--callbacks',
-        default=None,
-        nargs='+',
-        help='Specifies names for callbacks to use. The full callback class '
-             'name must be provided.'
-    )
 
     parser.add_argument(
         '-d', '--data',
@@ -148,7 +142,6 @@ if __name__ == '__main__':
             random_state=seed,
             r=args.r,
             R=args.R,
-            K=args.K,
             beta=args.beta,
         )
 
@@ -193,35 +186,26 @@ if __name__ == '__main__':
 
         sys.exit(-1)
 
-    # Get default callbacks if user did not provide anything else. Feel
-    # free to change this.
-    if args.callbacks is None:
-        callbacks = [
-            CalculateDiffusionHomology(),
-        ]
-    else:
-        import callbacks as cb
-
-        # Initialise callbacks with default parameters.
-        callbacks = [
-            getattr(cb, callback, None)() for callback in args.callbacks
-        ]
-
-        # Silently ignore all callbacks that were not found.
-        callbacks = [
-            callback for callback in callbacks if callback is not None
-        ]
-
-        logging.info(f'Running analysis with the following set of '
-                     f'callbacks: {callbacks}')
-
     kernel_fn = get_kernel_fn(args.kernel)
 
-    diffusion_condensation = DiffusionCondensation(
-        callbacks=callbacks,
-        kernel_fn=kernel_fn
-    )
-    data = diffusion_condensation(X, args.epsilon)
+    D = pairwise_distances(X)
+    print(np.max(D))
+    max_distance = np.max(D)
+    max_distance = int(np.ceil(np.log10(max_distance)))
+    threshold_range = np.linspace(10**-4, 10**max_distance, 3)
+
+    all_data = {}
+
+    for threshold in threshold_range:
+        callback = CalculateDiffusionHomology(threshold=threshold)
+
+        diffusion_condensation = DiffusionCondensation(
+            callbacks=[callback],
+            kernel_fn=kernel_fn
+        )
+
+        data = diffusion_condensation(X, args.epsilon)
+        all_data[f'threshold_{threshold:.04f}'] = data
 
     logging.info(f'Storing results in {output_filename}')
-    np.savez(output_filename, **data)
+    np.savez(output_filename, **all_data)
