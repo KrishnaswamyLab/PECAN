@@ -189,6 +189,12 @@ class CalculateDiffusionHomology(Callback):
             self.distances = np.full_like(D, np.inf)
             np.fill_diagonal(self.distances, 0.0)
 
+        # Reset distances for all points that are *above* the specified
+        # distance threshold again. Our distance shall reflect the time
+        # at which the points *remain* within this distance.
+        mask = np.transpose(np.nonzero(D >= self.threshold))
+        self.distances[mask] = np.inf
+
         for i1, i2 in np.transpose(np.nonzero(D < self.threshold)):
 
             # Update distances of the two pairs. This corresponds to
