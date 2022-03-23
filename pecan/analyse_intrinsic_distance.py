@@ -7,7 +7,7 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
-from sklearn.manifold import MDS
+from sklearn.manifold import TSNE
 
 from utilities import parse_keys
 
@@ -38,7 +38,11 @@ if __name__ == '__main__':
 
     print(n_failed_triples)
 
-    emb = MDS(dissimilarity='precomputed', random_state=42)
+    emb = TSNE(
+        metric='precomputed',
+        random_state=42,
+        verbose=3,
+    )
     X = emb.fit_transform(D)
 
     plt.scatter(X[:, 0], X[:, 1])
