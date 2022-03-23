@@ -187,7 +187,6 @@ class CalculateDiffusionHomology(Callback):
 
         if self.distances is None:
             self.distances = np.full_like(D, np.inf)
-            np.fill_diagonal(self.distances, 0.0)
 
         # Reset distances for all points that are *above* the specified
         # distance threshold again. Our distance shall reflect the time
@@ -220,6 +219,10 @@ class CalculateDiffusionHomology(Callback):
                 # this pair is easy because *everything* is created
                 # at t = 0.
                 self.persistence_pairs.append((0, t))
+
+        # Ensure that all self distances are zero. We only do this once
+        # and do not care about the entries during the iteration above.
+        np.fill_diagonal(self.distances, 0.0)
 
     def __repr__(self):
         """Return name of callback."""
