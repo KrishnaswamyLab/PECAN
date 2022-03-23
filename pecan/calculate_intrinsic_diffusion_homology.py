@@ -31,6 +31,10 @@ if __name__ == '__main__':
 
     np.savetxt('/tmp/D.txt', D, fmt='%.4f')
 
+    # FIXME: perturbation, to be controlled by the client?
+    # n = len(D)
+    # D += np.random.default_rng().uniform(low=0.01, high=0.02, size=(n, n))
+
     vr = VietorisRipsPersistence(
         metric='precomputed',
         reduced_homology=True,
@@ -47,3 +51,4 @@ if __name__ == '__main__':
 
     # Only print cycles for now...should generalise, though?
     print(diagram[diagram[:, 2] == 1][:, :2])
+    print(np.diff(diagram[diagram[:, 2] == 1][:, :2]).sum())
