@@ -241,7 +241,6 @@ if __name__ == '__main__':
         help='Set random seed to ensure reproducibility.'
     )
 
-    # TODO: implement effects of this
     parser.add_argument(
         '--noise',
         type=float,
@@ -319,6 +318,9 @@ if __name__ == '__main__':
             f'Epsilon parameter has not been set. Estimating '
             f'it as {args.epsilon:.4f}.'
         )
+
+    if args.noise > 0.0:
+        X += args.noise * np.random.uniform(size=X.shape)
 
     logging.info(f'Data set: {args.data}')
     logging.info(f'Number of samples: {args.num_samples}')
