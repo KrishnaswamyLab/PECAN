@@ -232,8 +232,8 @@ class CalculateDiffusionHomology(Callback):
 
     def finalise(self, data):
         """Update data dictionary."""
-        T = np.max(self.distances) + 1
-        self.distances[~np.isfinite(self.distances)] = T
+        T = np.max(np.ma.masked_invalid(self.distances)) + 1
+        self.distances[np.isinf(self.distances)] = T
 
         data.update({
             'diffusion_homology_persistence_pairs': np.asarray(
