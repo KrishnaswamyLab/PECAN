@@ -232,7 +232,7 @@ class CalculateDiffusionHomology(Callback):
 
     def finalise(self, data):
         """Update data dictionary."""
-        T = np.max(np.ma.masked_invalid(self.distances)) + 1
+        T = np.max(np.ma.masked_invalid(self.distances))
         self.distances[np.isinf(self.distances)] = T
 
         data.update({
