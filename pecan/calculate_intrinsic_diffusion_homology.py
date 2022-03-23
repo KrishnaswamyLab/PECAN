@@ -34,8 +34,9 @@ if __name__ == '__main__':
     # FIXME: perturbation, to be controlled by the client?
     # n = len(D)
     # D += np.random.default_rng().uniform(low=0.01, high=0.02, size=(n, n))
- 
+
     print(D)
+    print(np.unique(D))
 
     vr = VietorisRipsPersistence(
         metric='precomputed',
