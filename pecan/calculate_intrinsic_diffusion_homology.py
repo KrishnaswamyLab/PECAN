@@ -34,20 +34,23 @@ if __name__ == '__main__':
     # FIXME: perturbation, to be controlled by the client?
     # n = len(D)
     # D += np.random.default_rng().uniform(low=0.01, high=0.02, size=(n, n))
+ 
+    print(D)
 
     vr = VietorisRipsPersistence(
         metric='precomputed',
         reduced_homology=True,
+        collapse_edges=True,
         homology_dimensions=(0, 1)
     )
-    diagram = vr.fit_transform([D])[0]
+    diagram = vr.fit_transform(D[None, :, :])[0]
 
     persistence_pairs = diagram[diagram[:, 2] == 0][:, :2]
     diff = persistence_pairs - pairs
     diff = diff.sum()
 
-    assert diff == 0.0, \
-        'Something is wrong: diffusion homology pairs do not match'
+    if diff != 0.0:
+        print('Something is wrong: diffusion homology pairs do not match')
 
     # Only print cycles for now...should generalise, though?
     print(diagram[diagram[:, 2] == 1][:, :2])
