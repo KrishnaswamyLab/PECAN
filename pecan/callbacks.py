@@ -179,6 +179,7 @@ class CalculateDiffusionHomology(Callback):
         self.uf = None
         self.threshold = threshold
         self.distances = None
+        self.reset_distances = False
 
     def __call__(self, t, X, P, D):
         """Update function for this functor."""
@@ -191,8 +192,9 @@ class CalculateDiffusionHomology(Callback):
         # Reset distances for all points that are *above* the specified
         # distance threshold again. Our distance shall reflect the time
         # at which the points *remain* within this distance.
-        mask = np.transpose(np.nonzero(D >= self.threshold))
-        self.distances[mask] = np.inf
+        if self.reset_distances:
+            mask = np.transpose(np.nonzero(D >= self.threshold))
+            self.distances[mask] = np.inf
 
         for i1, i2 in np.transpose(np.nonzero(D < self.threshold)):
 
@@ -230,6 +232,9 @@ class CalculateDiffusionHomology(Callback):
 
     def finalise(self, data):
         """Update data dictionary."""
+        T = np.max(self.distances) + 1
+        self.distances[~np.isfinite(self.distances)] = T
+
         data.update({
             'diffusion_homology_persistence_pairs': np.asarray(
                 self.persistence_pairs
