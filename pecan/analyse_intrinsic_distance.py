@@ -38,6 +38,10 @@ if __name__ == '__main__':
         n_failed_triples += D[x, y] > D[x, z] + D[z, y]
         n_failed_triples_ultra += D[x, y] > max(D[x, z], D[z, y])
 
+        # Skip useless combinations
+        if n_failed_triples_ultra >= 1:
+            break
+
     print(n_failed_triples)
     print(n_failed_triples_ultra)
 
