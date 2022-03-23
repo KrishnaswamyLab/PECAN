@@ -9,17 +9,8 @@ from gtda.homology import VietorisRipsPersistence
 from utilities import parse_keys
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('INPUT')
-
-    args = parser.parse_args()
-
-    # Load data and check whether all keys are available. We require
-    # diffusion homology distances and pairs.
-    data = np.load(args.INPUT)
-    parsed_keys = parse_keys(data)
-
+def run(data, parsed_keys, threshold=None):
+    """Run analysis for a single threshold."""
     assert 'diffusion_homology_distances' in parsed_keys, \
         'Require "diffusion_homology_distances" key'
 
@@ -46,13 +37,42 @@ if __name__ == '__main__':
     )
     diagram = vr.fit_transform(D[None, :, :])[0]
 
-    persistence_pairs = diagram[diagram[:, 2] == 0][:, :2]
-    diff = persistence_pairs - pairs
-    diff = diff.sum()
+    try:
+        persistence_pairs = diagram[diagram[:, 2] == 0][:, :2]
+        diff = persistence_pairs - pairs
+        diff = diff.sum()
 
-    if diff != 0.0:
-        print('Something is wrong: diffusion homology pairs do not match')
+        if diff != 0.0:
+            print('Something is wrong: diffusion homology pairs do not match')
+    except ValueError:
+        pass
+
+    if threshold is not None:
+        print(f'THRESHOLD: {threshold:.04f}')
 
     # Only print cycles for now...should generalise, though?
     print(diagram[diagram[:, 2] == 1][:, :2])
     print(np.diff(diagram[diagram[:, 2] == 1][:, :2]).sum())
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('INPUT')
+
+    args = parser.parse_args()
+
+    # Load data and check whether all keys are available. We require
+    # diffusion homology distances and pairs.
+    data = np.load(args.INPUT, allow_pickle=True)
+    parsed_keys = parse_keys(data)
+
+    # No data present; repeat analysis over different thresholds.
+    if 'data' not in parsed_keys:
+        for key in parsed_keys.keys():
+            threshold = float(key.split('_')[1])
+            local_keys = parse_keys(data[key].item())
+
+            run(data[key].item(), local_keys)
+
+    else:
+        run(data, parsed_keys)
