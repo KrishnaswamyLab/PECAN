@@ -32,11 +32,14 @@ if __name__ == '__main__':
     indices = np.arange(n)
 
     n_failed_triples = 0
+    n_failed_triples_ultra = 0
 
     for x, y, z in itertools.combinations(indices, 3):
         n_failed_triples += D[x, y] > D[x, z] + D[z, y]
+        n_failed_triples_ultra += D[x, y] > max(D[x, z], D[z, y])
 
     print(n_failed_triples)
+    print(n_failed_triples_ultra)
 
     emb = TSNE(
         metric='precomputed',
