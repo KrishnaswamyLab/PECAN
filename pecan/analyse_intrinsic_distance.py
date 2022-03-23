@@ -5,6 +5,10 @@ import itertools
 
 import numpy as np
 
+import matplotlib.pyplot as plt
+
+from sklearn.manifold import MDS
+
 from utilities import parse_keys
 
 
@@ -33,3 +37,9 @@ if __name__ == '__main__':
         n_failed_triples += D[x, y] > D[x, z] + D[z, y]
 
     print(n_failed_triples)
+
+    emb = MDS(dissimilarity='precomputed', random_state=42)
+    X = emb.fit_transform(D)
+
+    plt.scatter(X[:, 0], X[:, 1])
+    plt.show()
