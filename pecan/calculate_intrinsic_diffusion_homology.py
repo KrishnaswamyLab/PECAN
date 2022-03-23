@@ -26,8 +26,9 @@ def run(data, parsed_keys, threshold=None):
     # n = len(D)
     # D += np.random.default_rng().uniform(low=0.01, high=0.02, size=(n, n))
 
-    print(D)
-    print(np.unique(D))
+    # FIXME: make this verbose output (?)
+    # print(D)
+    # print(np.unique(D))
 
     vr = VietorisRipsPersistence(
         metric='precomputed',
@@ -48,11 +49,11 @@ def run(data, parsed_keys, threshold=None):
         pass
 
     if threshold is not None:
-        print(f'THRESHOLD: {threshold:.04f}')
+        print(f'THRESHOLD: {threshold:.05f}')
 
     # Only print cycles for now...should generalise, though?
-    print(diagram[diagram[:, 2] == 1][:, :2])
-    print(np.diff(diagram[diagram[:, 2] == 1][:, :2]).sum())
+    print(' ', diagram[diagram[:, 2] == 1][:, :2])
+    print(' ', np.diff(diagram[diagram[:, 2] == 1][:, :2]).sum())
 
 
 if __name__ == '__main__':
@@ -72,7 +73,7 @@ if __name__ == '__main__':
             threshold = float(key.split('_')[1])
             local_keys = parse_keys(data[key].item())
 
-            run(data[key].item(), local_keys)
+            run(data[key].item(), local_keys, threshold=threshold)
 
     else:
         run(data, parsed_keys)

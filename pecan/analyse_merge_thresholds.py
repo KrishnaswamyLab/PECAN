@@ -189,10 +189,9 @@ if __name__ == '__main__':
     kernel_fn = get_kernel_fn(args.kernel)
 
     D = pairwise_distances(X)
-    print(np.max(D))
     max_distance = np.max(D)
     max_distance = int(np.ceil(np.log10(max_distance)))
-    threshold_range = np.linspace(10**-4, 10**max_distance, 20)
+    threshold_range = np.logspace(-5, max_distance, 10)
 
     all_data = {}
 
@@ -206,8 +205,6 @@ if __name__ == '__main__':
 
         data = diffusion_condensation(X, args.epsilon)
         all_data[f'threshold_{threshold:.04f}'] = data
-
-    print(all_data)
 
     logging.info(f'Storing results in {output_filename}')
     np.savez(output_filename, **all_data)
