@@ -58,8 +58,7 @@ def barbell(N, beta=1, **kwargs):
         x = (2 + beta / 2) * np.random.uniform()
         y = (2 + beta / 2) * np.random.uniform()
 
-        X.append((x, y))
-        k += 1
+        n_prev = len(C)
 
         if (x - 0.5) ** 2 + (y - 0.5) ** 2 <= 0.25:
             C.append(0)
@@ -69,6 +68,10 @@ def barbell(N, beta=1, **kwargs):
 
         elif (x - 1.5 - beta / 2) ** 2 + (y - 0.5) ** 2 <= 0.25:
             C.append(2)
+
+        if len(C) > n_prev:
+            X.append((x, y))
+            k += 1
 
     return np.asarray(X), np.asarray(C)
 
