@@ -17,7 +17,6 @@ pyrivet = {git = "https://github.com/Pseudomanifold/rivet-python"}
 tadasets = "^0.0.4"
 Cython = "^0.29.23"
 tqdm = "^4.61.2"
-giotto-tda = "^0.5.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^4.6"
