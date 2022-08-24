@@ -209,7 +209,6 @@ if __name__ == '__main__':
         callbacks = [
             CalculateDiffusionHomology(),
             CalculatePersistentHomology(),
-            CalculateBifiltration(),
         ]
     else:
         import callbacks as cb
