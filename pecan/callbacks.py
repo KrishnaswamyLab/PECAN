@@ -285,22 +285,18 @@ class CalculateBifiltration(Callback):
         edges = list(itertools.combinations(range(len(X)), 2))
 
         # Create function values for vertices first.
-        function_values = [
-            [(0, 0)] for _ in vertices
-        ]
+        function_values = [[(0, 0)] for _ in vertices]
 
         # Use duplicates of the distance values for each edge.
-        function_values.extend(
-            [(D[i, j], D[i, j])] for i, j in edges
-        )
+        function_values.extend([(D[i, j], D[i, j])] for i, j in edges)
 
         simplicial_complex = vertices + edges
 
         bifi = rivet.Bifiltration(
-            x_label='distance',
-            y_label='distance',
+            x_label="distance",
+            y_label="distance",
             simplices=simplicial_complex,
-            appearances=function_values
+            appearances=function_values,
         )
 
         bifi_betti = rivet.betti(bifi, homology=1)
@@ -310,13 +306,11 @@ class CalculateBifiltration(Callback):
 
     def __repr__(self):
         """Return name of callback."""
-        return 'CalculateBifiltration'
+        return "CalculateBifiltration"
 
 
 class CalculateBifiltrationDiffusionDistance_v_Distance(Callback):
-    """Bifiltration calculations over diffusion time and distance. 
-
-    """
+    """Bifiltration calculations over diffusion time and distance."""
 
     def __call__(self, t, X, P, D):
         """Calculate bifiltration features.
@@ -331,28 +325,24 @@ class CalculateBifiltrationDiffusionDistance_v_Distance(Callback):
         edges = list(itertools.combinations(range(len(X)), 2))
 
         # Create function values for vertices first.
-        function_values = [
-            [(0, 0)] for _ in vertices
-        ]
+        function_values = [[(0, 0)] for _ in vertices]
 
-        # Compute the diffusion distances from 
+        # Compute the diffusion distances from
         # each point to a (randomly chosen) point
-        e,V = np.linalg.eig(P)
+        e, V = np.linalg.eig(P)
         DiffusionCoords = V.T
         Pdists = scipy.spatial.distance_matrix(DiffusionCoords)
 
         # Use duplicates of the distance values for each edge.
-        function_values.extend(
-            [(D[i, j], D[i, j])] for i, j in edges
-        )
+        function_values.extend([(D[i, j], D[i, j])] for i, j in edges)
 
         simplicial_complex = vertices + edges
 
         bifi = rivet.Bifiltration(
-            x_label='diffusion',
-            y_label='distance',
+            x_label="diffusion",
+            y_label="distance",
             simplices=simplicial_complex,
-            appearances=function_values
+            appearances=function_values,
         )
 
         bifi_betti = rivet.betti(bifi, homology=1)
@@ -404,10 +394,7 @@ class CalculateReturnProbabilities(Callback):
             # we do not have to recompute them every time?
             V = eigenvalues**k
 
-            return_probabilities = np.multiply(
-                U,
-                V
-            )
+            return_probabilities = np.multiply(U, V)
 
             return_probabilities = np.sum(return_probabilities, axis=1)
             R[:, k] = return_probabilities
@@ -417,10 +404,12 @@ class CalculateReturnProbabilities(Callback):
 
     def finalise(self, data):
         """Update data dictionary."""
-        data.update({
-            f'return_probabilities_t_{i}': prob for i, prob in
-            self.return_probabilities.items()
-        })
+        data.update(
+            {
+                f"return_probabilities_t_{i}": prob
+                for i, prob in self.return_probabilities.items()
+            }
+        )
 
         return data
 
@@ -441,7 +430,7 @@ class CalculateTangentSpace(Callback):
             Number of neighbours to use for estimating the kernel space.
         """
         self.k = n_neighbours
-        self.knn = NearestNeighbors(n_neighbors=self.k, metric='euclidean')
+        self.knn = NearestNeighbors(n_neighbors=self.k, metric="euclidean")
         self.curvature = {}
 
     def __call__(self, t, X, P, D):
@@ -460,14 +449,13 @@ class CalculateTangentSpace(Callback):
 
     def __repr__(self):
         """Return name of callback."""
-        return 'CalculateTangentSpace'
+        return "CalculateTangentSpace"
 
     def finalise(self, data):
         """Update data dictionary."""
-        data.update({
-            f'curvature_t_{i}': curv for i, curv in
-            self.curvature.items()
-        })
+        data.update(
+            {f"curvature_t_{i}": curv for i, curv in self.curvature.items()}
+        )
 
         return data
 
@@ -483,7 +471,7 @@ class CalculateTangentSpace(Callback):
         # continues, the fit might be degenerate because everything is
         # converging towards a single point.
         with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', category=RuntimeWarning)
+            warnings.filterwarnings("ignore", category=RuntimeWarning)
             pca.fit(Y)
 
         components = pca.components_
@@ -495,10 +483,7 @@ class CalculateTangentSpace(Callback):
 
         x0 = np.zeros((dimension, dimension)).ravel()
         result = scipy.optimize.minimize(
-            self._hypersurface_loss,
-            x0,
-            args=(Z, Y),
-            method='Nelder-Mead'
+            self._hypersurface_loss, x0, args=(Z, Y), method="Nelder-Mead"
         )
 
         x0 = result.x.reshape((dimension, dimension))
@@ -523,10 +508,10 @@ class CalculateTangentSpace(Callback):
         -------
         Error for the fit with current parameters `A`.
         """
-        Z = args[0]     # projections
-        Y = args[1]     # local tangent space
+        Z = args[0]  # projections
+        Y = args[1]  # local tangent space
         D = len(Z) - 1  # dimension of fit
-        n = len(Y)      # number of points
+        n = len(Y)  # number of points
         A = A.reshape((D, D))
 
         loss = 0.0
