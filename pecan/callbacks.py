@@ -126,9 +126,7 @@ class CalculatePersistentHomology(Callback):
 
         # Add additional information about the dimension of each
         # topological feature.
-        dimension = np.asarray([
-            len(c) - 1 for c, _ in tuples
-        ])
+        dimension = np.asarray([len(c) - 1 for c, _ in tuples])
 
         # Adds the dimension as an additional column, turning the 2D
         # points of the diagram into 3D points.
@@ -139,19 +137,23 @@ class CalculatePersistentHomology(Callback):
 
     def __repr__(self):
         """Return name of callback."""
-        return 'CalculatePersistentHomology'
+        return "CalculatePersistentHomology"
 
     def finalise(self, data):
         """Update data dictionary."""
-        data.update({
-            f'persistence_pairs_t_{i}': pairs for i, pairs in
-            self.persistence_pairs.items()
-        })
+        data.update(
+            {
+                f"persistence_pairs_t_{i}": pairs
+                for i, pairs in self.persistence_pairs.items()
+            }
+        )
 
-        data.update({
-            f'persistence_points_t_{i}': pairs for i, pairs in
-            self.persistence_points.items()
-        })
+        data.update(
+            {
+                f"persistence_points_t_{i}": pairs
+                for i, pairs in self.persistence_points.items()
+            }
+        )
 
         return data
 
@@ -228,20 +230,35 @@ class CalculateDiffusionHomology(Callback):
 
     def __repr__(self):
         """Return name of callback."""
-        return 'CalculateDiffusionHomology'
+        return "CalculateDiffusionHomology"
 
     def finalise(self, data):
         """Update data dictionary."""
         T = np.max(np.ma.masked_invalid(self.distances))
         self.distances[np.isinf(self.distances)] = T
 
-        data.update({
-            'diffusion_homology_persistence_pairs': np.asarray(
-                self.persistence_pairs
-            ),
-            'diffusion_homology_edges': np.asarray(self.edges),
-            'diffusion_homology_distances': self.distances
-        })
+        data.update(
+            {
+                "diffusion_homology_persistence_pairs": np.asarray(
+                    self.persistence_pairs
+                ),
+                "diffusion_homology_edges": np.asarray(self.edges),
+                "diffusion_homology_distances": self.distances,
+            }
+        )
+
+        # Calculate Betti curve over all diffusion iteration steps
+        if len(self.persistence_pairs) > 0:
+            betti = [
+                (t, np.sum(np.asarray(self.persistence_pairs)[:, 1] >= t))
+                for t in np.arange(0, T + 1)
+            ]
+
+            data.update(
+                {
+                    "diffusion_homology_betti": np.asarray(betti),
+                }
+            )
 
         return data
 
