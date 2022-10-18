@@ -86,6 +86,23 @@ def extract_diffusion_homology(data, parsed_keys, prefix, out_dir):
         comments=''
     )
 
+    out = os.path.join(
+        out_dir, prefix + '_betti.txt'
+    )
+
+    betti = data['diffusion_homology_betti']
+
+    logging.info(f'Storing Betti curve in {out}...')
+
+    np.savetxt(
+        out,
+        betti,
+        fmt='%.8f',
+        delimiter='\t',
+        header='time\tbetti_number',
+        comments=''
+    )
+
 
 def extract_persistence_points(data, parsed_keys, prefix, out_dir):
     """Extract persistence points."""

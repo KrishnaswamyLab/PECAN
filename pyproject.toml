@@ -23,6 +23,9 @@ pytest = "^4.6"
 black = {version = "^21.6b0", allow-prereleases = true}
 pyflakes = "^2.5.0"
 
+[tool.black]
+line-length = 79
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
