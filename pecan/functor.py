@@ -22,7 +22,7 @@ class DiffusionCondensation:
     def __init__(
         self,
         callbacks=[],
-        prefix='data_',
+        prefix="data_",
         kernel_fn=None,
     ):
         """Initialise new instance and register callbacks.
@@ -80,14 +80,14 @@ class DiffusionCondensation:
         # Will store the data set per iteration to check whether the
         # implementation works as expected.
         data = {
-            self.prefix + 't_0': X.copy(),
-            'P_t_0': np.identity(n),
+            self.prefix + "t_0": X.copy(),
+            "P_t_0": np.identity(n),
         }
 
         for callback in self.callbacks:
             callback(i, X, np.identity(n), euclidean_distances(X))
 
-        logging.info('Started diffusion condensation process')
+        logging.info("Started diffusion condensation process")
 
         with yaspin(spinner=Spinners.dots) as sp:
             while i - j > 1:
@@ -96,7 +96,7 @@ class DiffusionCondensation:
 
                 while Q_diff >= 1e-4:
 
-                    sp.text = f'Iteration {i}'
+                    sp.text = f"Iteration {i}"
 
                     # This signals that we want to perform an additional
                     # operation of diffusion here.
@@ -112,7 +112,7 @@ class DiffusionCondensation:
                     P = np.diag(1.0 / np.sum(K, axis=1)) @ K
 
                     # Store diffusion operator
-                    data[f'P_t_{i}'] = P
+                    data[f"P_t_{i}"] = P
 
                     for callback in self.callbacks:
                         callback(i, X, P, D)
@@ -121,7 +121,7 @@ class DiffusionCondensation:
 
                     # Store new variant of the data set for the current
                     # iteration at time $i$.
-                    data[f'{self.prefix}t_{i}'] = X.copy()
+                    data[f"{self.prefix}t_{i}"] = X.copy()
 
                     Q_diff = np.max(Q - Q_prev)
                     Q_prev = Q
@@ -134,7 +134,7 @@ class DiffusionCondensation:
         for callback in self.callbacks:
             data = callback.finalise(data)
 
-        logging.info('Finished diffusion condensation process')
+        logging.info("Finished diffusion condensation process")
         return data
 
     @staticmethod
@@ -154,6 +154,3 @@ class DiffusionCondensation:
             Smoothing parameter for the kernel calculation.
         """
         return rbf_kernel(X, gamma=1.0 / epsilon)
-
-
-
