@@ -106,10 +106,12 @@ class DiffusionCondensation:
                     # label assignments changed.
                     D = euclidean_distances(X)
 
-                    A = self.kernel_fn(X, epsilon)
-                    Q = np.sum(A, axis=1)
-                    K = np.diag(1.0 / Q) @ A @ np.diag(1.0 / Q)
-                    P = np.diag(1.0 / np.sum(K, axis=1)) @ K
+                    # K: Affinity matrix defined by the kernel
+                    # Q: Vector of degrees (row sums)
+                    # P: D^-1 K
+                    K = self.kernel_fn(X, epsilon)
+                    Q = np.sum(K, axis=1)
+                    P = np.diag(1.0 / Q) @ K
 
                     # Store diffusion operator
                     data[f"P_t_{i}"] = P
