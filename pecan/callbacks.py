@@ -616,6 +616,7 @@ class CalculateLawvereHomology(Callback):
         """Return name of callback."""
         return "CalculatePersistentHomology"
 
+
     def finalise(self, data):
         """Update data dictionary."""
         data.update(
