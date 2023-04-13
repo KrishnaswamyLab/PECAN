@@ -85,7 +85,7 @@ class DiffusionCondensation:
         }
 
         for callback in self.callbacks:
-            callback(i, X, np.identity(n), euclidean_distances(X))
+            callback(i, X, np.identity(n), euclidean_distances(X),A = 1-euclidean_distances(X))
 
         logging.info("Started diffusion condensation process")
 
@@ -109,15 +109,17 @@ class DiffusionCondensation:
                     # K: Affinity matrix defined by the kernel
                     # Q: Vector of degrees (row sums)
                     # P: D^-1 K
+                    # A  = D^-1/2 K D^-1/2
                     K = self.kernel_fn(X, epsilon)
                     Q = np.sum(K, axis=1)
                     P = np.diag(1.0 / Q) @ K
-
+                    A = np.diag(np.sqrt(1/Q)) @ K @ np.diag(np.sqrt(1/Q))
+                    
                     # Store diffusion operator
                     data[f"P_t_{i}"] = P
 
                     for callback in self.callbacks:
-                        callback(i, X, P, D)
+                        callback(i, X, P, D, A)
 
                     X = P @ X
 
