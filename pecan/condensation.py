@@ -13,7 +13,6 @@ import data
 from callbacks import CalculateBifiltration
 from callbacks import CalculateDiffusionHomology
 from callbacks import CalculatePersistentHomology
-from callbacks import CalculateLawvereHomology
 
 from functor import DiffusionCondensation
 
@@ -210,7 +209,6 @@ if __name__ == '__main__':
         callbacks = [
             CalculateDiffusionHomology(),
             CalculatePersistentHomology(),
-            CalculateLawvereHomology(),
         ]
     else:
         import callbacks as cb
