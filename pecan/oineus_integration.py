@@ -52,3 +52,7 @@ dgm = dcmp.diagram(fil, include_inf_points)
 for dim in range(dim):
     print(f"Diagram in dimension {dim}:")
     print(dgm[dim])
+
+print(dcmp.u_data_t)
+print(dcmp.v_data)
+print(dcmp.r_data)
