@@ -1,0 +1,3 @@
+[submodule "oineus"]
+	path = oineus
+	url = git@github.com:anigmetov/oineus.git
