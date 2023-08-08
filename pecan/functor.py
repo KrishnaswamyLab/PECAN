@@ -24,6 +24,7 @@ class DiffusionCondensation:
         callbacks=[],
         prefix="data_",
         kernel_fn=None,
+        max_steps = None
     ):
         """Initialise new instance and register callbacks.
 
@@ -56,6 +57,8 @@ class DiffusionCondensation:
         self.prefix = prefix
         self.kernel_fn = kernel_fn
 
+        self.max_steps = max_steps
+
         if self.kernel_fn is None:
             self.kernel_fn = self.make_affinity_matrix
 
@@ -85,7 +88,7 @@ class DiffusionCondensation:
         }
 
         for callback in self.callbacks:
-            callback(i, X, np.identity(n), euclidean_distances(X))
+            callback(i, X, np.identity(n), euclidean_distances(X), A = 1-euclidean_distances(X))
 
         logging.info("Started diffusion condensation process")
 
@@ -112,12 +115,13 @@ class DiffusionCondensation:
                     K = self.kernel_fn(X, epsilon)
                     Q = np.sum(K, axis=1)
                     P = np.diag(1.0 / Q) @ K
+                    A = np.diag(np.sqrt(1/Q)) @ K @ np.diag(np.sqrt(1/Q))
 
                     # Store diffusion operator
                     data[f"P_t_{i}"] = P
 
                     for callback in self.callbacks:
-                        callback(i, X, P, D)
+                        callback(i, X, P, D, A)
 
                     X = P @ X
 
@@ -127,6 +131,9 @@ class DiffusionCondensation:
 
                     Q_diff = np.max(Q - Q_prev)
                     Q_prev = Q
+
+                    if self.max_steps is not None and i >= self.max_steps:
+                        break
 
                 epsilon *= 2
                 Q_diff = np.inf
