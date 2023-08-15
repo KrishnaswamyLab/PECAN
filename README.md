@@ -1,5 +1,7 @@
 # PECAN: Persistent Condensation
 
+[![arXiv](https://img.shields.io/badge/arXiv-2203.14860-b31b1b.svg)](https://arxiv.org/abs/2203.14860) ![GitHub contributors](https://img.shields.io/github/contributors/KrishnaswamyLab/PECAN) ![GitHub](https://img.shields.io/github/license/KrishnaswamyLab/PECAN)
+
 This repository contains our work-in-progress code for
 a persistence-enhanced variant of the [diffusion condensation
 algorithm](https://ieeexplore.ieee.org/document/9006013).
