@@ -1,6 +1,3 @@
-import sys
-sys.path.append("../oineus/build/bindings/python")
-
 import numpy as np
 import oineus as oin
 
@@ -56,3 +53,5 @@ for dim in range(dim):
 print(dcmp.u_data_t)
 print(dcmp.v_data)
 print(dcmp.r_data)
+
+print(len(dcmp.u_data_t), len(dcmp.v_data), len(dcmp.r_data))
