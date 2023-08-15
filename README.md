@@ -74,3 +74,21 @@ $ poetry update
 ```
 
 This ensures that the Python 'wrapper' for `rivet_console` is installed.
+
+## Using `Oineus` bindings
+
+[`Oineus`](https://github.com/anigmetov/oineus) is a fast C++ library for
+calculating persistent homology. It comes with Python bindings, which
+we have wrapped in [`py-oineus`, an **experimental package**](https://github.com/aidos-lab/py-oineus).
+The module requires a recent C++ compiler (supporting C++17) as well as
+support for [Threading Building Blocks](https://github.com/oneapi-src/oneTBB).
+If you install those library, for instance via `brew install tbb`, you
+can add the `oineus` Python bindings to the project like this:
+
+```
+$ poetry shell
+$ pip install git+ssh://git@github.com/aidos-lab/py-oineus
+```
+
+To test the integration, run `python pecan/oineus_integration.py` in the
+proper virtual environment.
