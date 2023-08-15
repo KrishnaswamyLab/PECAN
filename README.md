@@ -7,7 +7,7 @@ Diffusion Geometry and
 Topology*](https://epubs.siam.org/doi/10.1137/21M1462945). If you use
 this code, please consider citing our paper:
 
-```biblatex
+```bibtex
 @article{Huguet23a,
   title         = {Time-Inhomogeneous Diffusion Geometry and Topology},
   author        = {Huguet, Guillaume and Tong, Alexander and Rieck, Bastian and Huang, Jessie and Kuchroo, Manik and Hirn, Matthew and Wolf, Guy and Krishnaswamy, Smita},
