@@ -132,6 +132,12 @@ if __name__ == '__main__':
              'whenever it is appropriate.'
     )
 
+    parser.add_argument( # add diffusion time argument
+        '-T', '--LawvDiffTime',
+        default=1,
+        help='Diffusion time for CalculateLawvereHomology() can be float or \'VNElbow\''
+    )
+
     args = parser.parse_args()
     this = sys.modules[__name__]
 
@@ -227,6 +233,20 @@ if __name__ == '__main__':
 
         logging.info(f'Running analysis with the following set of '
                      f'callbacks: {callbacks}')
+
+    if args.LawvDiffTime is not None: # add diffusion time to the CalculateLawvereHomology() callback
+        diffusion_time = None
+        try:
+            diffusion_time = int(args.LawvDiffTime)
+        except ValueError:
+            assert args.LawvDiffTime == 'VNElbow'
+            diffusion_time = args.LawvDiffTime
+        callbacks = [
+            callback if not isinstance(callback, CalculateLawvereHomology) else CalculateLawvereHomology(diffusion_time=diffusion_time) for callback in callbacks 
+        ]
+
+        # print(callbacks[-1].diffusion_time)
+        # import pdb; pdb.set_trace()
 
     kernel_fn = get_kernel_fn(args.kernel)
 
