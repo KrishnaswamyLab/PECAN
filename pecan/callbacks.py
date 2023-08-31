@@ -548,7 +548,7 @@ class CalculateLawvereHomology(Callback):
 
     """
 
-    def __init__(self, dimension=1, max_cardinality=512, diffusion_time=1):
+    def __init__(self, dimension=1, max_cardinality=1024, diffusion_time=1): ## doubled max card for swiss-roll.
         """Build new instance of callback and set parameters.
 
         Parameters
