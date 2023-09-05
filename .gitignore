@@ -15,3 +15,5 @@ __pycache__/
 
 .imdone
 imdone-tasks.md
+pecan/scripts/logs
+*png
