@@ -132,6 +132,7 @@ class DiffusionCondensation:
                     Q_diff = np.max(Q - Q_prev)
                     Q_prev = Q
 
+                    print(f"    {Q_diff}")
                     if self.max_steps is not None and i >= self.max_steps:
                         break
 
