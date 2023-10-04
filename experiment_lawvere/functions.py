@@ -733,6 +733,22 @@ def visuallize_diffusion_map_subplot_correct(X, P, d, ax, name='Dataset', epsilo
     ax.scatter(Xpca[:, 0], Xpca[:, 1], s=s)
     ax.set_title(f'Diffusion Map $\epsilon={np.round(epsilon, 2)}$,$\\alpha={np.round(alpha, 0)}$, t={np.round(t, 0)}')
 
+def visuallize_diffusion_map_subplot_color(X, P, d, ax, colors, name='Dataset', epsilon=1, alpha=1, t=1, filter_func=None, s=1, axisequal=False):
+    lam, Xd = eigendecompose_diffusion(P, d)  # Assuming diffusion_map is a function you've defined
+    if filter_func is None:
+        Xd = lam ** t * Xd
+    else:
+        Xd = filter_func(lam) * Xd
+    pca = PCA(n_components=2)
+    Xpca = pca.fit_transform(Xd)
+
+    # Plot the diffusion map on the specified subplot
+    ax.scatter(Xpca[:, 0], Xpca[:, 1], s=s, c=colors)
+    if axisequal:
+        ax.axis('equal')
+    ax.set_title(f'Diffusion Map $\epsilon={np.round(epsilon, 2)}$,$\\alpha={np.round(alpha, 0)}$, t={np.round(t, 0)}')
+
+
 from sklearn.metrics.pairwise import euclidean_distances
 
 def calculate_lawvere_homology_logp(P):
@@ -827,7 +843,7 @@ def visualize_lawvere_homology(points, ax, epsilon=1., name='', s=1):
     ax.set_ylim(points[:, :-1].min() * 0.9, points[:, :-1].max() * 1.1)
     ax.axline((-0.1, -0.1), slope=1.0, c='k')
     ax.scatter(x=points[:, 0], y=points[:, 1], c=points[:, 2], cmap='coolwarm', s=s)
-    ax.set_title(f"Lawvere Homology with {name}")
+    ax.set_title(f"Persistence Diagram with {name}")
 
 def plot_diffusions(epsilon, alpha, t, X, s=1):
     # Assuming petals is a function you've defined
@@ -905,3 +921,83 @@ def sinewave_petals(length=8, A=2, B=1, C=0, delta_t=0.3, points_per_unit_radius
     all_circle_points = np.vstack(circle_points_list)
     
     return all_circle_points, None
+
+def make_swiss_roll(turns=2, a=0.1, base_delta_theta=0.1 * 2 * np.pi, theta=1 * np.pi, noise=0.0):
+    thetas = []
+    while theta < 2 * np.pi * turns:
+        thetas.append(theta)
+        # Adjust delta_theta to be inversely proportional to theta, but ensure it's never zero
+        delta_theta = base_delta_theta / (1 + theta / (2 * np.pi))
+        theta += delta_theta
+    thetas = np.array(thetas)
+    tmp_x = (a * thetas * np.cos(thetas))
+    xmin, xmax = np.min(tmp_x), np.max(tmp_x)
+    w = np.linspace(xmin, xmax, len(thetas))
+    t, w = np.meshgrid(thetas, w)
+    t = t.flatten()
+    w = w.flatten()
+    x = a * t * np.cos(t)
+    y = a * t * np.sin(t)
+    z = w
+    noises_t = np.random.normal(0, noise * (t.max()-t.min()), len(t))
+    noises_w = np.random.normal(0, noise * (w.max()-w.min()), len(w))
+    t += noises_t
+    w += noises_w
+    return np.column_stack((x, y, z)), np.column_stack((t, w))
+
+def create_colors(X_flat, c, r, eps):
+    # Calculate the distance between each point in X_flat and the center c
+    dist = np.sqrt(np.sum((X_flat - c)**2, axis=1))
+    
+    # Create an array of colors where points within the circle are colored 1 and points outside the circle are colored 0
+    colors = np.where(np.abs(dist - r) <= eps, 1, 0)
+    
+    return colors
+
+def calculate_lawvere_homology_diffu_dist_subset(P, subset_idx, t=1):
+    # in the code it is 
+    # A_comp = 1 - np.diag(np.sqrt(1/d)) @ K @ np.diag(np.sqrt(1/d))
+    lam, phi = diffusion_map(P)
+    Xd = lam ** t * phi
+    A = euclidean_distances(Xd)
+    A_subset = A[subset_idx][:, subset_idx]
+    tuples, points = Ripser(dimension=1)(A_subset)
+    # tuples_comp, points_comp = Ripser(dimension=1)(A_comp)
+    # Add additional information about the dimension of each
+    # topological feature.
+    dimension = np.asarray([len(c) - 1 for c, _ in tuples])
+
+    # Adds the dimension as an additional column, turning the 2D
+    # points of the diagram into 3D points.
+    points = np.column_stack((points, dimension))
+    return points
+
+def calculate_vr_homology_subset(X, subset_idx):
+    A = euclidean_distances(X)
+    A_subset = A[subset_idx][:, subset_idx]
+    tuples, points = Ripser(dimension=1)(A_subset)
+    # tuples_comp, points_comp = Ripser(dimension=1)(A_comp)
+    # Add additional information about the dimension of each
+    # topological feature.
+    dimension = np.asarray([len(c) - 1 for c, _ in tuples])
+
+    # Adds the dimension as an additional column, turning the 2D
+    # points of the diagram into 3D points.
+    points = np.column_stack((points, dimension))
+    return points
+
+def visuallize_diffusion_map_subplot_color_3d(X, P, d, ax, colors, name='Dataset', epsilon=1, alpha=1, t=1, filter_func=None, s=1, axisequal=False):
+    lam, Xd = eigendecompose_diffusion(P, d)  # Assuming diffusion_map is a function you've defined
+    if filter_func is None:
+        Xd = lam ** t * Xd
+    else:
+        Xd = filter_func(lam) * Xd
+    pca = PCA(n_components=3)
+    Xpca = pca.fit_transform(Xd)
+
+    # Plot the diffusion map on the specified subplot
+    ax.scatter(Xpca[:, 0], Xpca[:, 1], Xpca[:, 2], s=s, c=colors)
+    # ax.scatter(Xpca[:, 0], Xpca[:, 1], s=s, c=colors)
+    if axisequal:
+        ax.axis('equal')
+    ax.set_title(f'Diffusion Map $\\epsilon={np.round(epsilon, 2)}$, $\\alpha={np.round(alpha, 0)}$, t={np.round(t, 0)}')
