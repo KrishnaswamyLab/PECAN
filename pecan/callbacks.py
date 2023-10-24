@@ -2,19 +2,15 @@
 
 import itertools
 import warnings
+from abc import ABC, abstractmethod
 
-import scipy
 import numpy as np
-
-from abc import ABC
-from abc import abstractmethod
-
+import oineus as oin
+import scipy
+from pyrivet import rivet
+from ripser import Ripser
 from sklearn.decomposition import PCA
 from sklearn.neighbors import NearestNeighbors
-
-from pyrivet import rivet
-
-from ripser import Ripser
 from utilities import UnionFind
 
 
@@ -69,6 +65,87 @@ class Callback(ABC):
         -------
         Updated data dictionary.
         """
+        return data
+
+
+class CalculateVineyards(Callback):
+    """Vineyards Callback.
+
+    This class keeps track of homology classes arising throughout
+    the condensation process. It generates a Persistence Vineyard that
+    tracks features from a Vietoris--Rips filtration at each
+    time step.
+
+    This considers the underlying point cloud as a dynamic metric
+    space.
+    """
+
+    def __init__(self, dimension=1, max_cardinality=512):
+        """Build new instance of callback and set parameters.
+
+        Parameters
+        ----------
+        dimension : int
+            Maximum dimension for which to calculate topological
+            features.
+
+        max_cardinality : int
+            Maximum cardinality of point clouds for which topological
+            features should be calculated. Since calculating features
+            slows down other computations, larger point clouds should
+            be handled differently.
+        """
+        self.dimension = dimension
+        self.max_cardinality = max_cardinality
+        self.persistence_pairs = dict()
+        self.persistence_points = dict()
+        self.vineyard = []
+
+    def __call__(self, t, X, P, D):
+        """Update function for this functor."""
+        # Nothing to do here if the point cloud is too large.
+        if len(X) > self.max_cardinality:
+            return
+
+        # TODO: Compute New Peristence Diagram/ matrices and update Vineyard in `finalise`
+
+        tuples, points = oin.compute_diagrams_ls()
+
+        if tuples is None or points is None:
+            return
+
+        # Add additional information about the dimension of each
+        # topological feature.
+        dimension = np.asarray([len(c) - 1 for c, _ in tuples])
+
+        # Adds the dimension as an additional column, turning the 2D
+        # points of the diagram into 3D points.
+        points = np.column_stack((points, dimension))
+
+        self.persistence_pairs[t] = tuples
+        self.persistence_points[t] = points
+
+    def __repr__(self):
+        """Return name of callback."""
+        return "CalculatePersistentHomology"
+
+    def finalise(self, data):
+        """Update data dictionary."""
+        # UPDATE EXISTING VINEYARD
+        data.update(
+            {
+                f"persistence_pairs_t_{i}": pairs
+                for i, pairs in self.persistence_pairs.items()
+            }
+        )
+
+        data.update(
+            {
+                f"persistence_points_t_{i}": pairs
+                for i, pairs in self.persistence_points.items()
+            }
+        )
+
         return data
 
 
