@@ -81,7 +81,7 @@ class CalculateVineyards(Callback):
     space.
     """
 
-    def __init__(self, dimension=1, homotopy_steps=2, max_cardinality=512):
+    def __init__(self, dimension=1, homotopy_steps=1, max_cardinality=512):
         """Build new instance of callback and set parameters.
 
         Parameters
@@ -157,10 +157,10 @@ class CalculateVineyards(Callback):
 
     def finalise(self, data):
         """Update data dictionary."""
-        # UPDATE EXISTING VINEYARD
+
         data.update({"vineyard" : self.vineyard})
+        data.update(self.filtration_args)
         data.update({"homotopy_summary": self.simplex_info})
-        data.update({"simplices" : self.unique_simplexes})
 
         return data
 
