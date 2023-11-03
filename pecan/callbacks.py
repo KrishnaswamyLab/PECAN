@@ -81,7 +81,7 @@ class CalculateVineyards(Callback):
     space.
     """
 
-    def __init__(self, dimension=4, homotopy_steps=1, max_cardinality=512):
+    def __init__(self, dimension=1, homotopy_steps=1, max_cardinality=512):
         """Build new instance of callback and set parameters.
 
         Parameters
