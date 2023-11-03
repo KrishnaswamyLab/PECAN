@@ -81,7 +81,7 @@ class CalculateVineyards(Callback):
     space.
     """
 
-    def __init__(self, dimension=1, homotopy_steps=1, max_cardinality=512):
+    def __init__(self, dimension=4, homotopy_steps=1, max_cardinality=512):
         """Build new instance of callback and set parameters.
 
         Parameters
@@ -115,7 +115,7 @@ class CalculateVineyards(Callback):
         
         #Setup at t=0
         if t == 0:
-            simplices_0 = get_oineus_pairs(X,"pc",self.filtration_args)
+            simplices_0 = get_oineus_pairs(X,self.dimension,"pc",self.filtration_args)
             self.simplex_info[t] = (simplices_0)
             self.unique_simplexes.union(set(simplices_0))
             self.vineyard = {k:[] for k in self.unique_simplexes}
@@ -132,7 +132,7 @@ class CalculateVineyards(Callback):
                 X_delta = X_prev * (1-x_) + X * x_
 
                 # Recording homology per timestep
-                simplices_delta = get_oineus_pairs(X_delta, "pc",self.filtration_args)
+                simplices_delta = get_oineus_pairs(X_delta,self.dimension, "pc",self.filtration_args)
                 self.simplex_info[t_delta] = simplices_delta
                 self.unique_simplexes.union(set(simplices_delta.keys()))
 

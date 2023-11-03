@@ -103,12 +103,12 @@ def get_pairs_sparse(R):
 def list_to_str(l):
     return "-".join([str(x) for x in l])
 
-def get_oineus_pairs(points, vr_type="pc", filtration_args=None):
+def get_oineus_pairs(points, max_dim, vr_type="pc", filtration_args=None):
 
     if vr_type == "pc":
-        fil = oin.get_vr_filtration(points, max_dim=2, max_radius=filtration_args["max_radius"], n_threads = 1)
+        fil = oin.get_vr_filtration(points, max_dim=max_dim, max_radius=filtration_args["max_radius"], n_threads = 1)
     elif vr_type == "distance":
-        fil = oin.get_vr_filtration_from_pwdists(points, max_dim =2, max_radius = filtration_args["max_radius"], n_threads = 1)
+        fil = oin.get_vr_filtration_from_pwdists(points, max_dim=max_dim, max_radius = filtration_args["max_radius"], n_threads = 1)
     else:
         raise ValueError("vr_type should be either 'pc' or 'distance'")
     
