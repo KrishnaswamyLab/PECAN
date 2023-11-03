@@ -5,12 +5,13 @@ import warnings
 from abc import ABC, abstractmethod
 
 import numpy as np
-import oineus as oin
 import scipy
-from pyrivet import rivet
 from ripser import Ripser
 from sklearn.decomposition import PCA
 from sklearn.neighbors import NearestNeighbors
+
+from vineyards_oineus import get_oineus_pairs
+import tqdm
 from utilities import UnionFind
 
 
@@ -80,7 +81,7 @@ class CalculateVineyards(Callback):
     space.
     """
 
-    def __init__(self, dimension=1, max_cardinality=512):
+    def __init__(self, dimension=1, homotopy_steps=2, max_cardinality=512):
         """Build new instance of callback and set parameters.
 
         Parameters
@@ -97,54 +98,69 @@ class CalculateVineyards(Callback):
         """
         self.dimension = dimension
         self.max_cardinality = max_cardinality
-        self.persistence_pairs = dict()
-        self.persistence_points = dict()
-        self.vineyard = []
+        
+        self.vineyard = {}
+
+        self.vine_support = tuple() #(X,t) from previous step
+        self.unique_simplexes = set()
+        self.simplex_info = {}
+        self.filtration_args =  {'max_radius': 5}
+        self.num_homotopy_steps = homotopy_steps
 
     def __call__(self, t, X, P, D):
         """Update function for this functor."""
         # Nothing to do here if the point cloud is too large.
         if len(X) > self.max_cardinality:
             return
+        
+        #Setup at t=0
+        if t == 0:
+            simplices_0 = get_oineus_pairs(X,"pc",self.filtration_args)
+            self.simplex_info[t] = (simplices_0)
+            self.unique_simplexes.union(set(simplices_0))
+            self.vineyard = {k:[] for k in self.unique_simplexes}
 
-        # TODO: Compute New Peristence Diagram/ matrices and update Vineyard in `finalise`
+        else:
+            # Unpacking Vine Support
+            X_prev, t_prev = self.vine_support
+            steps = np.linspace(1,0,self.num_homotopy_steps+1,endpoint=False)[::-1]
+             # Spatial point-wise linear homotopy
+             # perturbing previous space by `delta` towards current  
+            for x_ in tqdm.tqdm(steps,disable=True):
+               
+                t_delta = t_prev * (1-x_) + t * x_
+                X_delta = X_prev * (1-x_) + X * x_
 
-        tuples, points = oin.compute_diagrams_ls()
+                # Recording homology per timestep
+                simplices_delta = get_oineus_pairs(X_delta, "pc",self.filtration_args)
+                self.simplex_info[t_delta] = simplices_delta
+                self.unique_simplexes.union(set(simplices_delta.keys()))
 
-        if tuples is None or points is None:
-            return
+                #Updating Vines
+                for simplex,feature in simplices_delta.items():
+                    leaf = tuple([t_delta]) + feature
+                    if simplex not in self.vineyard.keys():
+                        self.vineyard[simplex] = []
+                    self.vineyard[simplex].append(leaf)
 
-        # Add additional information about the dimension of each
-        # topological feature.
-        dimension = np.asarray([len(c) - 1 for c, _ in tuples])
 
-        # Adds the dimension as an additional column, turning the 2D
-        # points of the diagram into 3D points.
-        points = np.column_stack((points, dimension))
+            # Naive testing- can remove later for efficiency
+            assert np.array_equal(X,X_delta), "Interpolation gone wrong."
+        
 
-        self.persistence_pairs[t] = tuples
-        self.persistence_points[t] = points
+        self.vine_support = (X.copy(),t)
+
 
     def __repr__(self):
         """Return name of callback."""
-        return "CalculatePersistentHomology"
+        return "CalculateVineyards"
 
     def finalise(self, data):
         """Update data dictionary."""
         # UPDATE EXISTING VINEYARD
-        data.update(
-            {
-                f"persistence_pairs_t_{i}": pairs
-                for i, pairs in self.persistence_pairs.items()
-            }
-        )
-
-        data.update(
-            {
-                f"persistence_points_t_{i}": pairs
-                for i, pairs in self.persistence_points.items()
-            }
-        )
+        data.update({"vineyard" : self.vineyard})
+        data.update({"homotopy_summary": self.simplex_info})
+        data.update({"simplices" : self.unique_simplexes})
 
         return data
 
