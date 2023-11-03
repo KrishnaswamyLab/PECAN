@@ -103,7 +103,7 @@ def get_pairs_sparse(R):
 def list_to_str(l):
     return "-".join([str(x) for x in l])
 
-def get_oineus_pairs(points, vr_type, filtration_args):
+def get_oineus_pairs(points, vr_type="pc", filtration_args=None):
 
     if vr_type == "pc":
         fil = oin.get_vr_filtration(points, max_dim=2, max_radius=filtration_args["max_radius"], n_threads = 1)
@@ -126,13 +126,14 @@ def get_oineus_pairs(points, vr_type, filtration_args):
     dims= [len(s.vertices)-1 for s in fil.simplices()]
     R_ = dcmp.r_data
 
+
     pairs, simplex_ids = get_pairs_sparse(R_)
     persistence_pairs = get_persistence_pairs(pairs,dims, sorted_values, p="all")
 
     fil_simplices = fil.simplices()
     simplex_vertices_dict = {list_to_str(fil_simplices[s].vertices) : persistence_pairs[i] for i,s in enumerate(simplex_ids)}
 
-    return fil, sorted_values, simplex_vertices_dict #, persistence_pairs, simplex_ids #pairs, simplex_ids, simplex_vertices, persistence_pairs
+    return simplex_vertices_dict #, persistence_pairs, simplex_ids #pairs, simplex_ids, simplex_vertices, persistence_pairs
 
 def compute_vineyards(points_list, vr_type = "pc", filtration_args = None):
 
@@ -143,7 +144,8 @@ def compute_vineyards(points_list, vr_type = "pc", filtration_args = None):
     """
 
     print("Computing T0")
-    _, _, simplex_vertices_dict0 = get_oineus_pairs(points_list[0], vr_type = vr_type, filtration_args = filtration_args)
+    simplex_vertices_dict0 = get_oineus_pairs(points_list[0], vr_type = "pc", filtration_args = filtration_args)
+    
 
     dict_list = [simplex_vertices_dict0]
     times_list = [0]
@@ -151,22 +153,25 @@ def compute_vineyards(points_list, vr_type = "pc", filtration_args = None):
 
     vertices_uniques = set(simplex_vertices_dict0.keys())
 
+
     points_prev = points_list[0].copy()
 
-    for points_next in points_list[1:]:
+    for points_next in points_list[1:2]:
 
         x_cross = np.linspace(0,1,10)
 
         for x_ in tqdm.tqdm(x_cross):
 
+            # Straight Line homotopy between points
+            # What about when points are absorbed?
             points_ = points_prev * (1-x_) + points_next * x_
-            _, _,  simplex_vertices_dict_ = get_oineus_pairs(points_, vr_type = vr_type, filtration_args = filtration_args)
+            simplex_vertices_dict_ = get_oineus_pairs(points_, vr_type = vr_type, filtration_args = filtration_args)
             dict_list.append(simplex_vertices_dict_)
             times_list.append(x_ + t_shift)
             vertices_uniques = vertices_uniques.union(set(simplex_vertices_dict_.keys()))
 
         print(f"Computing T{t_shift+1}")
-        _, _,  simplex_vertices_dict1 = get_oineus_pairs(points_next, vr_type = vr_type, filtration_args = filtration_args)
+        simplex_vertices_dict1 = get_oineus_pairs(points_next, vr_type = vr_type, filtration_args = filtration_args)
         
         dict_list.append(simplex_vertices_dict1)
         vertices_uniques = vertices_uniques.union(set(simplex_vertices_dict1.keys()))
@@ -181,6 +186,8 @@ def compute_vineyards(points_list, vr_type = "pc", filtration_args = None):
     for k in base_dict.keys():
         for t_, dict_ in enumerate(dict_list):
             base_dict[k].append((times_list[t_],) + dict_.get(k,(None,)))
+            # if k == '0-1-4':
+            #     print((times_list[t_],) + dict_.get(k,(None,)))
 
     return base_dict
 
@@ -190,7 +197,4 @@ if __name__ == "__main__":
     points = np.random.randn(10,3)
     #distance matrix at time 1
     points1 = np.random.randn(10,3)
-
-    vines_dict = compute_vineyards(points,points1)
-    breakpoint()
-
+    vines_dict = compute_vineyards([points,points1],vr_type="pc",filtration_args={"max_radius":10})
