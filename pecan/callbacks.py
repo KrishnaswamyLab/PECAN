@@ -12,6 +12,9 @@ from abc import abstractmethod
 from sklearn.decomposition import PCA
 from sklearn.neighbors import NearestNeighbors
 
+from scipy.linalg import cho_factor
+from scipy.linalg import solve_triangular
+
 from pyrivet import rivet
 
 from ripser import Ripser
@@ -534,3 +537,34 @@ class CalculateTangentSpace(Callback):
         # the optimisation function.
         A = A.ravel()
         return loss
+
+
+class CalculateMagnitude(Callback):
+    """Metric space magnitude calculation callback.
+
+    This callback calculates the magnitude of a metric space.
+    """
+
+    def __init__(self, n_neighbours=8):
+        """Create new instance of the callback."""
+        self.magnitude = {}
+
+    def __call__(self, t, X, P, D):
+        """Update function for this functor."""
+        M = np.exp(-D)
+        c, lower = cho_factor(M)
+        x = solve_triangular(c, np.ones(M.shape[0]), trans=1)
+
+        self.magnitude[t] = x.T @ x
+
+    def __repr__(self):
+        """Return name of callback."""
+        return "CalculateMagnitude"
+
+    def finalise(self, data):
+        """Update data dictionary."""
+        data.update(
+            {f"magnitude_t_{i}": curv for i, curv in self.magnitude.items()}
+        )
+
+        return data
