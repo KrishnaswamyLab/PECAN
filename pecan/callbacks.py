@@ -551,11 +551,15 @@ class CalculateMagnitude(Callback):
 
     def __call__(self, t, X, P, D):
         """Update function for this functor."""
-        M = np.exp(-D)
-        c, lower = cho_factor(M)
-        x = solve_triangular(c, np.ones(M.shape[0]), trans=1)
+        try:
+            M = np.exp(-D)
+            c, lower = cho_factor(M)
+            x = solve_triangular(c, np.ones(M.shape[0]), trans=1)
+            magnitude = x.T @ x
+        except scipy.linalg.LinAlgError:
+            magnitude = np.nan
 
-        self.magnitude[t] = x.T @ x
+        self.magnitude[t] = magnitude
 
     def __repr__(self):
         """Return name of callback."""
