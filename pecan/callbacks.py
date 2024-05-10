@@ -10,6 +10,7 @@ from abc import ABC
 from abc import abstractmethod
 
 from sklearn.decomposition import PCA
+from sklearn.linear_model import Ridge
 from sklearn.neighbors import NearestNeighbors
 
 from scipy.linalg import cho_factor
@@ -551,14 +552,13 @@ class CalculateMagnitude(Callback):
 
     def __call__(self, t, X, P, D):
         """Update function for this functor."""
-        try:
-            M = np.exp(-D)
-            c, lower = cho_factor(M)
-            x = solve_triangular(c, np.ones(M.shape[0]), trans=1)
-            magnitude = x.T @ x
-        except scipy.linalg.LinAlgError:
-            magnitude = np.nan
 
+        M = np.exp(-D)
+        ones = np.ones(M.shape[0])
+        clf = Ridge(random_state=42, fit_intercept=False, solver="lsqr")
+        clf.fit(M, ones)
+
+        magnitude = clf.coef_.sum()
         self.magnitude[t] = magnitude
 
     def __repr__(self):
