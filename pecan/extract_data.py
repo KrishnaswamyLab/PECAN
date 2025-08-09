@@ -13,6 +13,16 @@ from utilities import make_tensor
 logging.basicConfig(level=logging.DEBUG)
 
 
+def extract_magnitude(data, parsed_keys, prefix, out_dir):
+    magnitude = make_tensor(data, parsed_keys['magnitude'])
+    T = magnitude.shape[-1]
+
+    for t in range(T):
+        print(t, magnitude[t])
+
+    print("\n")
+
+
 def extract_point_clouds(data, parsed_keys, prefix, out_dir):
     """Extract point clouds and store them as text files."""
     assert 'data' in parsed_keys, 'Require "data" key'
@@ -162,6 +172,7 @@ if __name__ == '__main__':
     prefix = os.path.splitext(prefix)[0]
 
     extract_point_clouds(data, parsed_keys, prefix, args.output)
+    extract_magnitude(data, parsed_keys, prefix, args.output)
     extract_diffusion_homology(data, parsed_keys, prefix, args.output)
 
     try:
